@@ -126,7 +126,7 @@ export default function BlogPost() {
     description: article.excerpt,
     image: article.image,
     author: { '@type': 'Person', name: article.author.name },
-    publisher: { '@type': 'Organization', name: 'SEOrely', logo: { '@type': 'ImageObject', url: '/logo.png' } },
+    publisher: { '@type': 'Organization', name: 'SEOrely', logo: { '@type': 'ImageObject', url: 'https://seorely.netlify.app/favicon.svg' } },
     datePublished: article.publishDate,
     dateModified: article.publishDate,
   };
@@ -164,8 +164,8 @@ export default function BlogPost() {
 
             <div className="flex items-center gap-3 mt-10 pt-8 border-t border-gray-100">
               <span className="text-sm text-gray-400">Share:</span>
-              <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(article.title)}&url=${encodeURIComponent(window.location.href)}`} target="_blank" rel="noopener" className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 hover:bg-purple-50 hover:text-purple-600 transition"><Twitter className="w-4 h-4" /></a>
-              <a href={`https://linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`} target="_blank" rel="noopener" className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 hover:bg-purple-50 hover:text-purple-600 transition"><Linkedin className="w-4 h-4" /></a>
+              <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(article.title)}&url=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}`} target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 hover:bg-purple-50 hover:text-purple-600 transition"><Twitter className="w-4 h-4" /></a>
+              <a href={`https://linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(typeof window !== 'undefined' ? window.location.href : '')}`} target="_blank" rel="noopener noreferrer" className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-400 hover:bg-purple-50 hover:text-purple-600 transition"><Linkedin className="w-4 h-4" /></a>
             </div>
 
             <div className="mt-8 flex flex-wrap gap-2">

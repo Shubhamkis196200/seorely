@@ -1,12 +1,32 @@
 import { Link } from 'react-router-dom';
 import { Tool } from '../types';
-import { Tags, BarChart3, Search, Bot } from 'lucide-react';
+import { Tags, BarChart3, Search, Bot, Type, Hash, Link as LinkIcon, Heading, Share2, Code, Link2, FileText, CaseSensitive, ArrowRightLeft, Map, Globe, CheckCircle, BookOpen, Binary, Target, Monitor, GitCompare, Braces, Palette } from 'lucide-react';
 
 const iconMap: Record<string, React.ReactNode> = {
   Tags: <Tags className="w-6 h-6" />,
   BarChart3: <BarChart3 className="w-6 h-6" />,
   Search: <Search className="w-6 h-6" />,
   Bot: <Bot className="w-6 h-6" />,
+  Type: <Type className="w-6 h-6" />,
+  Hash: <Hash className="w-6 h-6" />,
+  Link: <LinkIcon className="w-6 h-6" />,
+  Heading: <Heading className="w-6 h-6" />,
+  Share2: <Share2 className="w-6 h-6" />,
+  Code: <Code className="w-6 h-6" />,
+  Link2: <Link2 className="w-6 h-6" />,
+  FileText: <FileText className="w-6 h-6" />,
+  CaseSensitive: <CaseSensitive className="w-6 h-6" />,
+  ArrowRightLeft: <ArrowRightLeft className="w-6 h-6" />,
+  Map: <Map className="w-6 h-6" />,
+  Globe: <Globe className="w-6 h-6" />,
+  CheckCircle: <CheckCircle className="w-6 h-6" />,
+  BookOpen: <BookOpen className="w-6 h-6" />,
+  Binary: <Binary className="w-6 h-6" />,
+  Target: <Target className="w-6 h-6" />,
+  Monitor: <Monitor className="w-6 h-6" />,
+  GitCompare: <GitCompare className="w-6 h-6" />,
+  Braces: <Braces className="w-6 h-6" />,
+  Palette: <Palette className="w-6 h-6" />,
 };
 
 export default function ToolCard({ tool }: { tool: Tool }) {

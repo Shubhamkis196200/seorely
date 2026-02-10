@@ -43,9 +43,9 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[
               { num: '15+', label: 'In-Depth Guides' },
-              { num: '4', label: 'Free SEO Tools' },
+              { num: '24', label: 'Free SEO Tools' },
               { num: '6', label: 'Categories' },
-              { num: '10K+', label: 'Monthly Readers' },
+              { num: '100%', label: 'Free Forever' },
             ].map(s => (
               <div key={s.label}>
                 <div className="text-3xl font-black text-purple-600">{s.num}</div>

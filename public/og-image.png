@@ -1,0 +1,8 @@
+<svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="630" fill="#f8f7ff"/>
+  <rect width="1200" height="8" fill="#7C3AED"/>
+  <text x="100" y="250" font-family="system-ui, sans-serif" font-size="72" font-weight="900" fill="#111827">SEO<tspan fill="#7C3AED">rely</tspan></text>
+  <text x="100" y="340" font-family="system-ui, sans-serif" font-size="36" fill="#6B7280">Learn SEO with Free Guides,</text>
+  <text x="100" y="390" font-family="system-ui, sans-serif" font-size="36" fill="#6B7280">Tools &amp; Tutorials</text>
+  <text x="100" y="480" font-family="system-ui, sans-serif" font-size="24" fill="#7C3AED">24+ Free Tools • 15+ In-Depth Guides • 100% Free</text>
+</svg>

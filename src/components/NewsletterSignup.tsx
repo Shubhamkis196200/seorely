@@ -23,7 +23,7 @@ export default function NewsletterSignup() {
     <div className="bg-purple-600 rounded-2xl p-8 md:p-12">
       <div className="max-w-2xl mx-auto text-center">
         <h3 className="text-2xl md:text-3xl font-bold text-white mb-3">Level Up Your SEO Skills</h3>
-        <p className="text-purple-200 mb-6">Get weekly SEO tips, strategies, and tool recommendations delivered to your inbox. Join 10,000+ marketers.</p>
+        <p className="text-purple-200 mb-6">Get weekly SEO tips, strategies, and tool recommendations delivered to your inbox. Join SEO professionals worldwide.</p>
         <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
           <input
             type="email"

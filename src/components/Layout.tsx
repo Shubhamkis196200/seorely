@@ -91,6 +91,8 @@ export default function Layout({ children }: { children: ReactNode }) {
               <div className="flex flex-col gap-2">
                 <Link to="/about" className="text-sm hover:text-white transition">About</Link>
                 <Link to="/contact" className="text-sm hover:text-white transition">Contact</Link>
+                <Link to="/privacy" className="text-sm hover:text-white transition">Privacy Policy</Link>
+                <Link to="/terms" className="text-sm hover:text-white transition">Terms of Service</Link>
               </div>
             </div>
           </div>
