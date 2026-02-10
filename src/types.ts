@@ -28,6 +28,7 @@ export interface Tool {
   description: string;
   icon: string;
   slug: string;
+  category: 'on-page' | 'technical' | 'content' | 'link-analytics';
 }
 
 export interface Category {

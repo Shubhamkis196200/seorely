@@ -10,30 +10,30 @@ export const authors: Author[] = [
     linkedin: 'sarahchenseo',
   },
   {
-    id: 'marcus-johnson',
-    name: 'Marcus Johnson',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=marcus',
-    bio: 'Technical SEO specialist and web developer. Loves diving deep into Core Web Vitals, structured data, and site architecture.',
-    twitter: 'marcusj_tech',
-    linkedin: 'marcusjohnsontech',
+    id: 'alex-kumar',
+    name: 'Alex Kumar',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=alex',
+    bio: 'Technical SEO specialist and web developer. Built SEO tools used by thousands of marketers. Loves solving complex indexation puzzles.',
+    twitter: 'alexkumar_seo',
+    linkedin: 'alexkumarseo',
   },
   {
-    id: 'elena-rodriguez',
-    name: 'Elena Rodriguez',
-    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=elena',
-    bio: 'Content strategist and link building expert. Has helped 200+ businesses grow their organic traffic through strategic content.',
-    twitter: 'elena_seo',
-    linkedin: 'elenarodriguezseo',
+    id: 'emma-wilson',
+    name: 'Emma Wilson',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=emma',
+    bio: 'Content strategist and link building expert. Former journalist turned SEO. Helps businesses build authority through great content.',
+    twitter: 'emmawilson_seo',
+    linkedin: 'emmawilsonseo',
   },
 ];
 
 export const categories: Category[] = [
-  { id: 'on-page-seo', name: 'On-Page SEO', slug: 'on-page-seo', description: 'Optimize your content and HTML for better rankings', count: 4 },
-  { id: 'technical-seo', name: 'Technical SEO', slug: 'technical-seo', description: 'Site speed, crawlability, indexation, and structured data', count: 4 },
-  { id: 'link-building', name: 'Link Building', slug: 'link-building', description: 'Build authority through strategic backlink acquisition', count: 2 },
-  { id: 'content-strategy', name: 'Content Strategy', slug: 'content-strategy', description: 'Plan, create, and optimize content that ranks', count: 3 },
-  { id: 'local-seo', name: 'Local SEO', slug: 'local-seo', description: 'Dominate local search results for your business', count: 1 },
-  { id: 'analytics', name: 'Analytics', slug: 'analytics', description: 'Measure, track, and improve your SEO performance', count: 1 },
+  { id: 'on-page-seo', name: 'On-Page SEO', slug: 'on-page-seo', description: 'Optimize your content and HTML for better rankings', count: 0 },
+  { id: 'technical-seo', name: 'Technical SEO', slug: 'technical-seo', description: 'Site speed, crawlability, indexation, and structured data', count: 0 },
+  { id: 'link-building', name: 'Link Building', slug: 'link-building', description: 'Build authority through strategic backlink acquisition', count: 0 },
+  { id: 'content-strategy', name: 'Content Strategy', slug: 'content-strategy', description: 'Plan, create, and optimize content that ranks', count: 0 },
+  { id: 'local-seo', name: 'Local SEO', slug: 'local-seo', description: 'Dominate local search results for your business', count: 0 },
+  { id: 'analytics', name: 'Analytics', slug: 'analytics', description: 'Measure, track, and improve your SEO performance', count: 0 },
 ];
 
 export const tools: Tool[] = [
@@ -72,12 +72,22 @@ export const tools: Tool[] = [
   { id: 'faq-schema', name: 'FAQ Schema Generator', description: 'Generate FAQPage structured data from your questions and answers', icon: 'HelpCircle', slug: 'faq-schema' },
   { id: 'breadcrumb-gen', name: 'Breadcrumb Schema Generator', description: 'Generate BreadcrumbList JSON-LD structured data', icon: 'ChevronRight', slug: 'breadcrumb-schema' },
   { id: 'text-stats', name: 'Text Statistics', description: 'Detailed text analysis: sentence length, vocabulary richness, and more', icon: 'BarChart', slug: 'text-statistics' },
-  { id: 'password-gen', name: 'Password Generator', description: 'Generate strong, random passwords for your website accounts', icon: 'Lock', slug: 'password-generator' },
+  { id: 'password-gen', name: 'Page Title A/B Tester', description: 'Test different page title variations and predict CTR', icon: 'TestTube', slug: 'password-generator' },
   { id: 'md-preview', name: 'Markdown Previewer', description: 'Write and preview Markdown content in real-time', icon: 'FileText', slug: 'markdown-preview' },
   { id: 'html-entities', name: 'HTML Entity Encoder', description: 'Encode and decode HTML special characters and entities', icon: 'Code2', slug: 'html-entities' },
-  { id: 'lorem-link', name: 'Internal Link Analyzer', description: 'Analyze internal linking structure from a list of pages and links', icon: 'Network', slug: 'internal-link-analyzer' },
+  { id: 'internal-link', name: 'Internal Link Analyzer', description: 'Analyze internal linking structure from a list of pages and links', icon: 'Network', slug: 'internal-link-analyzer' },
+  { id: 'meta-robots', name: 'Meta Robots Generator', description: 'Generate proper meta robots tags for indexation control', icon: 'Bot', slug: 'meta-robots-generator' },
+  { id: 'headline-cap', name: 'Headline Capitalizer', description: 'Convert headlines to proper title case with AP/Chicago style rules', icon: 'Type', slug: 'headline-capitalizer' },
+  { id: 'email-subject', name: 'Email Subject Line Tester', description: 'Score and optimize email subject lines for open rates', icon: 'Mail', slug: 'email-subject-tester' },
+  { id: 'social-preview', name: 'Social Media Preview', description: 'Preview how links appear across all social platforms', icon: 'Share2', slug: 'social-media-preview' },
+  { id: 'http-headers', name: 'HTTP Header Checker', description: 'Analyze HTTP response headers for SEO and security', icon: 'Server', slug: 'http-header-checker' },
+  { id: 'jsonld-gen', name: 'JSON-LD Generator', description: 'Generate schema.org JSON-LD for any schema type', icon: 'Code', slug: 'json-ld-generator' },
+  { id: 'search-intent', name: 'Search Intent Classifier', description: 'Classify keywords as informational, navigational, transactional, or commercial', icon: 'Compass', slug: 'search-intent-classifier' },
+  { id: 'longtail-gen', name: 'Long-Tail Keyword Generator', description: 'Generate long-tail keyword variations from seed keywords', icon: 'Sprout', slug: 'long-tail-keyword-generator' },
+  { id: 'site-audit', name: 'Site Audit Checklist', description: 'Interactive 100-point SEO audit checklist for comprehensive site reviews', icon: 'CheckSquare', slug: 'site-audit-checklist' },
+  { id: 'anchor-analyzer', name: 'Anchor Text Analyzer', description: 'Analyze anchor text distribution for link profile optimization', icon: 'Anchor', slug: 'anchor-text-analyzer' },
+  { id: 'keyword-grouper', name: 'Keyword Grouper', description: 'Group related keywords into content clusters automatically', icon: 'Layers', slug: 'keyword-grouper' },
 ];
-
 const guide1Content = `
 ## What is SEO?
 
@@ -2055,7 +2065,7 @@ export const articles: Article[] = [
     content: post6Content,
     tags: ['seo tools', 'free tools', 'google search console', 'keyword research', 'site audit'],
     type: 'post',
-    image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&h=400&fit=crop',
+    image: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=800&h=400&fit=crop',
   },
   {
     id: '7',
@@ -2214,4 +2224,44 @@ export function searchArticles(query: string): Article[] {
     a.excerpt.toLowerCase().includes(q) ||
     a.tags.some((t: string) => t.toLowerCase().includes(q))
   );
+}
+
+// Dynamic category counts
+categories.forEach(cat => {
+  cat.count = articles.filter(a => a.category === cat.id).length;
+});
+
+// Extract FAQ pairs from article content
+export function extractFAQs(content: string): { question: string; answer: string }[] {
+  const faqs: { question: string; answer: string }[] = [];
+  const lines = content.split('\n');
+  let inFaqSection = false;
+  let currentQ = '';
+  let currentA = '';
+
+  for (const line of lines) {
+    if (/^##\s+(FAQ|Frequently Asked Questions|Common Questions)/i.test(line)) {
+      inFaqSection = true;
+      continue;
+    }
+    if (inFaqSection && /^##\s+/.test(line) && !/^###/.test(line)) {
+      if (currentQ && currentA.trim()) faqs.push({ question: currentQ, answer: currentA.trim() });
+      break;
+    }
+    if (!inFaqSection) continue;
+
+    const h3Match = line.match(/^###\s+(.+)/);
+    const boldQ = line.match(/^\*\*(.+?\?)\*\*/);
+    const numberedQ = line.match(/^\d+\.\s+\*\*(.+?\?)\*\*/);
+    
+    if (h3Match || boldQ || numberedQ) {
+      if (currentQ && currentA.trim()) faqs.push({ question: currentQ, answer: currentA.trim() });
+      currentQ = (h3Match?.[1] || boldQ?.[1] || numberedQ?.[1] || '').replace(/\*\*/g, '');
+      currentA = '';
+    } else if (currentQ && line.trim()) {
+      currentA += (currentA ? ' ' : '') + line.trim().replace(/\*\*(.+?)\*\*/g, '$1').replace(/\*(.+?)\*/g, '$1');
+    }
+  }
+  if (currentQ && currentA.trim()) faqs.push({ question: currentQ, answer: currentA.trim() });
+  return faqs;
 }

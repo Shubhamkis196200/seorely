@@ -123,7 +123,7 @@ export default function AdminPage() {
                   <div key={c.id} className="bg-white p-5 rounded-xl border border-gray-100">
                     <h3 className="font-bold text-gray-900">{c.name}</h3>
                     <p className="text-sm text-gray-500 mt-1">{c.description}</p>
-                    <p className="text-xs text-gray-400 mt-2">{c.count} articles</p>
+                    <p className="text-xs text-gray-400 mt-2">{c.count} {c.count === 1 ? 'article' : 'articles'}</p>
                   </div>
                 ))}
               </div>

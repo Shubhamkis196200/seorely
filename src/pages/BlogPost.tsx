@@ -1,6 +1,6 @@
 import { useParams, Link } from 'react-router-dom';
-import { Calendar, Clock, Twitter, Linkedin, ArrowLeft } from 'lucide-react';
-import { getArticleBySlug, getRelatedArticles, categories } from '../data';
+import { Calendar, Clock, Twitter, Linkedin, ArrowLeft, ChevronRight } from 'lucide-react';
+import { getArticleBySlug, getRelatedArticles, categories, extractFAQs } from '../data';
 import ArticleCard from '../components/ArticleCard';
 import AuthorCard from '../components/AuthorCard';
 import TOCSidebar from '../components/TOCSidebar';
@@ -128,16 +128,43 @@ export default function BlogPost() {
     author: { '@type': 'Person', name: article.author.name },
     publisher: { '@type': 'Organization', name: 'SEOrely', logo: { '@type': 'ImageObject', url: 'https://seorely.netlify.app/favicon.svg' } },
     datePublished: article.publishDate,
-    dateModified: article.publishDate,
+    dateModified: article.publishDate >= '2026-02-08' ? article.publishDate : '2026-02-08',
   };
+
+  // Extract FAQs and build FAQ schema
+  const faqs = extractFAQs(article.content);
+  const faqSchema = faqs.length >= 2 ? {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map(f => ({
+      '@type': 'Question',
+      name: f.question,
+      acceptedAnswer: { '@type': 'Answer', text: f.answer },
+    })),
+  } : null;
 
   return (
     <>
       <SEOHead title={article.title} description={article.excerpt} image={article.image} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(articleSchema) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://seorely.com/' },
+          ...(cat ? [{ '@type': 'ListItem', position: 2, name: cat.name, item: `https://seorely.com/category/${cat.slug}` }] : []),
+          { '@type': 'ListItem', position: cat ? 3 : 2, name: article.title, item: `https://seorely.com/blog/${article.slug}` },
+        ]
+      }) }} />
+      {faqSchema && <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchema) }} />}
 
       <article className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
-        <Link to="/" className="inline-flex items-center gap-1 text-sm text-gray-400 hover:text-purple-600 mb-6"><ArrowLeft className="w-4 h-4" /> Back</Link>
+        <nav className="flex items-center gap-1 text-sm text-gray-400 mb-6">
+          <Link to="/" className="hover:text-purple-600">Home</Link>
+          <ChevronRight className="w-3 h-3" />
+          {cat && <><Link to={`/category/${cat.slug}`} className="hover:text-purple-600">{cat.name}</Link><ChevronRight className="w-3 h-3" /></>}
+          <span className="text-gray-700 truncate max-w-xs">{article.title}</span>
+        </nav>
 
         <div className="max-w-4xl">
           <div className="flex items-center gap-3 mb-4">

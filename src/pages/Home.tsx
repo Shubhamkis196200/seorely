@@ -43,7 +43,7 @@ export default function Home() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             {[
               { num: '15+', label: 'In-Depth Guides' },
-              { num: '24', label: 'Free SEO Tools' },
+              { num: '50', label: 'Free SEO Tools' },
               { num: '6', label: 'Categories' },
               { num: '100%', label: 'Free Forever' },
             ].map(s => (
@@ -94,7 +94,7 @@ export default function Home() {
                 </div>
                 <div>
                   <h3 className="font-semibold text-gray-900 group-hover:text-purple-600 transition">{cat.name}</h3>
-                  <p className="text-sm text-gray-400">{cat.count} articles</p>
+                  <p className="text-sm text-gray-400">{cat.count} {cat.count === 1 ? 'article' : 'articles'}</p>
                 </div>
               </Link>
             ))}
