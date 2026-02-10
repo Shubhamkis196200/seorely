@@ -4,127 +4,167 @@ import { ChevronRight } from 'lucide-react';
 import { tools } from '../data';
 import SEOHead from '../components/SEOHead';
 
-function MetaTagChecker() {
-  const [url, setUrl] = useState('https://example.com/page');
-  const [title, setTitle] = useState('');
-  const [desc, setDesc] = useState('');
+// ============================================================================
+// SHARED COMPONENTS
+// ============================================================================
+
+function StatBox({ label, value, color = 'purple' }: { label: string; value: string; color?: string }) {
+  const bg = color === 'purple' ? 'bg-purple-50' : color === 'teal' ? 'bg-teal-50' : 'bg-gray-50';
+  const text = color === 'purple' ? 'text-purple-600' : color === 'teal' ? 'text-teal-600' : 'text-gray-600';
   return (
-    <div className="space-y-6">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Page URL</label>
-        <input value={url} onChange={e => setUrl(e.target.value)} placeholder="https://example.com/page" className="input-field" />
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Page Title</label>
-        <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Enter your page title..." className="input-field" />
-        <div className="flex justify-between mt-1">
-          <span className={`text-xs ${title.length > 60 ? 'text-red-500' : 'text-gray-400'}`}>{title.length}/60 characters</span>
-          {title.length > 0 && title.length <= 60 && <span className="text-xs text-green-500">✓ Good length</span>}
-        </div>
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Meta Description</label>
-        <textarea value={desc} onChange={e => setDesc(e.target.value)} rows={3} placeholder="Enter your meta description..." className="input-field resize-none" />
-        <div className="flex justify-between mt-1">
-          <span className={`text-xs ${desc.length > 155 ? 'text-red-500' : 'text-gray-400'}`}>{desc.length}/155 characters</span>
-          {desc.length >= 120 && desc.length <= 155 && <span className="text-xs text-green-500">✓ Perfect length</span>}
-        </div>
-      </div>
-      {(title || desc) && (
-        <div className="p-4 bg-gray-50 rounded-lg">
-          <h4 className="text-sm font-medium text-gray-400 mb-3">SERP Preview</h4>
-          <div className="text-blue-700 text-lg font-medium hover:underline cursor-pointer truncate">{title || 'Your Page Title'}</div>
-          <div className="text-green-700 text-sm">{url}</div>
-          <div className="text-sm text-gray-600 mt-1 line-clamp-2">{desc || 'Your meta description will appear here.'}</div>
-        </div>
-      )}
-      {title && desc && (
-        <div className="p-4 bg-white border rounded-lg space-y-2">
-          <h4 className="font-semibold text-gray-900">Analysis</h4>
-          <div className="space-y-1 text-sm">
-            <div className={title.length <= 60 ? 'text-green-600' : 'text-red-600'}>
-              {title.length <= 60 ? '✓' : '✗'} Title length: {title.length} chars {title.length > 60 ? '(too long)' : '(good)'}
-            </div>
-            <div className={desc.length >= 120 && desc.length <= 155 ? 'text-green-600' : desc.length > 155 ? 'text-red-600' : 'text-yellow-600'}>
-              {desc.length >= 120 && desc.length <= 155 ? '✓' : '!'} Description length: {desc.length} chars
-            </div>
-            <div className={title.charAt(0) === title.charAt(0).toUpperCase() ? 'text-green-600' : 'text-yellow-600'}>
-              {title.charAt(0) === title.charAt(0).toUpperCase() ? '✓' : '!'} Title starts with capital letter
-            </div>
-          </div>
-        </div>
-      )}
+    <div className={`p-4 ${bg} rounded-lg text-center`}>
+      <div className={`text-2xl font-bold ${text}`}>{value}</div>
+      <div className="text-xs text-gray-500 mt-1">{label}</div>
     </div>
   );
 }
 
-function KeywordDensity() {
-  const [text, setText] = useState('');
-  const [keyword, setKeyword] = useState('');
-  const words = text.trim().split(/\s+/).filter(Boolean);
-  const wordCount = words.length;
-  const keywordCount = keyword ? (text.toLowerCase().match(new RegExp(keyword.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []).length : 0;
-  const density = wordCount > 0 && keyword ? ((keywordCount / wordCount) * 100).toFixed(2) : '0.00';
+function CopyBtn({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
   return (
-    <div className="space-y-6">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Your Content</label>
-        <textarea value={text} onChange={e => setText(e.target.value)} rows={8} placeholder="Paste your content here..." className="input-field resize-none" />
-        <span className="text-xs text-gray-400">{wordCount} words</span>
+    <button onClick={() => { navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000); }} className="text-sm text-purple-600 hover:text-purple-700 font-medium">
+      {copied ? '✓ Copied!' : '📋 Copy to clipboard'}
+    </button>
+  );
+}
+
+function CodeOutput({ label, code }: { label: string; code: string }) {
+  return (
+    <div className="mt-4">
+      <h4 className="text-sm font-medium text-gray-700 mb-2">{label}</h4>
+      <div className="bg-gray-900 rounded-lg p-4 max-h-80 overflow-y-auto">
+        <pre className="text-sm text-gray-300 whitespace-pre-wrap font-mono">{code}</pre>
       </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Target Keyword</label>
-        <input value={keyword} onChange={e => setKeyword(e.target.value)} placeholder="Enter keyword..." className="input-field" />
-      </div>
-      {keyword && wordCount > 0 && (
-        <div className="grid grid-cols-3 gap-4">
-          <StatBox label="Density" value={`${density}%`} />
-          <StatBox label="Occurrences" value={String(keywordCount)} />
-          <StatBox label="Total Words" value={String(wordCount)} />
-        </div>
-      )}
+      <div className="mt-2"><CopyBtn text={code} /></div>
+    </div>
+  );
+}
+
+// ============================================================================
+// ON-PAGE SEO TOOLS (1-15)
+// ============================================================================
+
+function MetaTagGenerator() {
+  const [title, setTitle] = useState('');
+  const [desc, setDesc] = useState('');
+  const [keywords, setKeywords] = useState('');
+  const html = `<title>${title}</title>\n<meta name="description" content="${desc}" />\n<meta name="keywords" content="${keywords}" />`;
+  return (
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Page Title *</label><input value={title} onChange={e => setTitle(e.target.value)} placeholder="Your Page Title" className="input-field" /></div>
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Meta Description *</label><textarea value={desc} onChange={e => setDesc(e.target.value)} rows={3} placeholder="Compelling description..." className="input-field resize-none" /></div>
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Keywords (comma-separated)</label><input value={keywords} onChange={e => setKeywords(e.target.value)} placeholder="seo, keyword research, optimization" className="input-field" /></div>
+      {title && desc && <CodeOutput label="HTML Meta Tags" code={html} />}
     </div>
   );
 }
 
 function SERPPreview() {
   const [title, setTitle] = useState('');
-  const [url, setUrl] = useState('');
+  const [url, setUrl] = useState('https://example.com/page');
   const [desc, setDesc] = useState('');
   return (
-    <div className="space-y-6">
-      <div><label className="block text-sm font-medium text-gray-700 mb-1">Title</label><input value={title} onChange={e => setTitle(e.target.value)} placeholder="Your page title" className="input-field" /></div>
-      <div><label className="block text-sm font-medium text-gray-700 mb-1">URL</label><input value={url} onChange={e => setUrl(e.target.value)} placeholder="https://example.com/page" className="input-field" /></div>
-      <div><label className="block text-sm font-medium text-gray-700 mb-1">Description</label><textarea value={desc} onChange={e => setDesc(e.target.value)} rows={3} placeholder="Meta description" className="input-field resize-none" /></div>
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Title</label><input value={title} onChange={e => setTitle(e.target.value)} placeholder="Your page title" className="input-field" /><span className="text-xs text-gray-400">{title.length}/60 chars</span></div>
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">URL</label><input value={url} onChange={e => setUrl(e.target.value)} className="input-field" /></div>
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Description</label><textarea value={desc} onChange={e => setDesc(e.target.value)} rows={3} className="input-field resize-none" /><span className="text-xs text-gray-400">{desc.length}/155 chars</span></div>
       <div className="border border-gray-200 rounded-lg p-6 bg-white">
-        <h4 className="text-sm font-medium text-gray-400 mb-4">Google Search Preview</h4>
+        <h4 className="text-xs font-medium text-gray-400 mb-3 uppercase">Google SERP Preview</h4>
         <div className="space-y-1">
-          <div className="text-sm text-gray-500">{url || 'https://example.com'} › page</div>
-          <div className="text-xl text-blue-800 font-medium hover:underline cursor-pointer">{title || 'Your Page Title Here'}</div>
-          <div className="text-sm text-gray-600 leading-relaxed">{desc || 'Your meta description will appear here.'}</div>
+          <div className="text-sm text-gray-500 truncate">{url}</div>
+          <div className="text-xl text-blue-600 hover:underline cursor-pointer font-medium">{title || 'Your Page Title'}</div>
+          <div className="text-sm text-gray-600 leading-relaxed line-clamp-2">{desc || 'Your meta description will appear here.'}</div>
         </div>
       </div>
     </div>
   );
 }
 
-function RobotsGenerator() {
-  const [userAgent, setUserAgent] = useState('*');
-  const [disallow, setDisallow] = useState('/admin/\n/private/');
-  const [allow, setAllow] = useState('/');
-  const [sitemap, setSitemap] = useState('https://example.com/sitemap.xml');
-  const output = `User-agent: ${userAgent}\n${allow.split('\n').filter(Boolean).map(a => `Allow: ${a}`).join('\n')}\n${disallow.split('\n').filter(Boolean).map(d => `Disallow: ${d}`).join('\n')}\n\nSitemap: ${sitemap}`;
+function TitleLengthChecker() {
+  const [title, setTitle] = useState('');
+  const ok = title.length > 0 && title.length <= 60;
+  const pixels = Math.round(title.length * 8.5);
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">User-agent</label><input value={userAgent} onChange={e => setUserAgent(e.target.value)} className="input-field" /></div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">Sitemap URL</label><input value={sitemap} onChange={e => setSitemap(e.target.value)} className="input-field" /></div>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">Allow (one per line)</label><textarea value={allow} onChange={e => setAllow(e.target.value)} rows={3} className="input-field resize-none font-mono text-sm" /></div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">Disallow (one per line)</label><textarea value={disallow} onChange={e => setDisallow(e.target.value)} rows={3} className="input-field resize-none font-mono text-sm" /></div>
-      </div>
-      <CodeOutput label="Generated robots.txt" code={output} />
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Title Tag</label><input value={title} onChange={e => setTitle(e.target.value)} placeholder="Enter your page title..." className="input-field" /></div>
+      {title && <div className="grid grid-cols-2 gap-4">
+        <StatBox label="Characters" value={String(title.length)} color={ok ? 'teal' : 'purple'} />
+        <StatBox label="Est. Pixels" value={`${pixels}px`} color={pixels <= 600 ? 'teal' : 'purple'} />
+      </div>}
+      {title && <div className={`p-4 rounded-lg ${ok ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+        <div className="font-semibold">{ok ? '✓ Title length is good!' : '✗ Title is too long'}</div>
+        <div className="text-sm mt-1">{ok ? 'Your title will display fully in Google search results.' : 'Google may truncate your title. Aim for 50-60 characters.'}</div>
+      </div>}
+    </div>
+  );
+}
+
+function MetaDescriptionLengthChecker() {
+  const [desc, setDesc] = useState('');
+  const ok = desc.length >= 120 && desc.length <= 155;
+  const pixels = Math.round(desc.length * 5.5);
+  return (
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Meta Description</label><textarea value={desc} onChange={e => setDesc(e.target.value)} rows={4} placeholder="Enter your meta description..." className="input-field resize-none" /></div>
+      {desc && <div className="grid grid-cols-2 gap-4">
+        <StatBox label="Characters" value={String(desc.length)} color={ok ? 'teal' : 'purple'} />
+        <StatBox label="Est. Pixels" value={`${pixels}px`} color={pixels <= 920 ? 'teal' : 'purple'} />
+      </div>}
+      {desc && <div className={`p-4 rounded-lg ${ok ? 'bg-green-50 text-green-700' : desc.length > 155 ? 'bg-red-50 text-red-700' : 'bg-yellow-50 text-yellow-700'}`}>
+        <div className="font-semibold">{ok ? '✓ Perfect length!' : desc.length > 155 ? '✗ Too long' : '! Could be longer'}</div>
+        <div className="text-sm mt-1">{ok ? 'Your description will display fully.' : desc.length > 155 ? 'Google may cut off your description.' : 'Aim for 120-155 characters for best results.'}</div>
+      </div>}
+    </div>
+  );
+}
+
+function HeadingStructureAnalyzer() {
+  const [html, setHtml] = useState('');
+  const headings = (() => {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const found: { level: number; text: string }[] = [];
+    ['h1','h2','h3','h4','h5','h6'].forEach((tag, idx) => {
+      doc.querySelectorAll(tag).forEach(el => found.push({ level: idx + 1, text: el.textContent?.trim() || '' }));
+    });
+    return found;
+  })();
+  const h1Count = headings.filter(h => h.level === 1).length;
+  return (
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Paste HTML</label><textarea value={html} onChange={e => setHtml(e.target.value)} rows={8} placeholder="<h1>Main Title</h1>\n<h2>Section 1</h2>\n<h3>Subsection</h3>" className="input-field resize-none font-mono text-sm" /></div>
+      {headings.length > 0 && <>
+        <div className="grid grid-cols-3 gap-4">
+          <StatBox label="H1 Count" value={String(h1Count)} color={h1Count === 1 ? 'teal' : 'purple'} />
+          <StatBox label="Total Headings" value={String(headings.length)} />
+          <StatBox label="Levels Used" value={String(new Set(headings.map(h => h.level)).size)} />
+        </div>
+        {h1Count !== 1 && <div className="p-3 bg-yellow-50 text-yellow-700 rounded-lg text-sm">⚠ You should have exactly one H1 tag per page.</div>}
+        <div className="space-y-1">{headings.map((h, i) => <div key={i} className="flex gap-2 text-sm"><span className="text-gray-400 font-mono w-8">H{h.level}</span><span style={{ paddingLeft: `${(h.level - 1) * 16}px` }} className="text-gray-700">{h.text}</span></div>)}</div>
+      </>}
+    </div>
+  );
+}
+
+function KeywordDensityChecker() {
+  const [text, setText] = useState('');
+  const [keyword, setKeyword] = useState('');
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  const wordCount = words.length;
+  const keywordCount = keyword ? (text.toLowerCase().match(new RegExp(keyword.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')) || []).length : 0;
+  const density = wordCount > 0 && keyword ? ((keywordCount / wordCount) * 100).toFixed(2) : '0.00';
+  const ideal = +density >= 0.5 && +density <= 2.5;
+  return (
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Your Content</label><textarea value={text} onChange={e => setText(e.target.value)} rows={8} placeholder="Paste your content here..." className="input-field resize-none" /></div>
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Target Keyword</label><input value={keyword} onChange={e => setKeyword(e.target.value)} placeholder="seo tools" className="input-field" /></div>
+      {keyword && wordCount > 0 && <div className="grid grid-cols-3 gap-4">
+        <StatBox label="Density" value={`${density}%`} color={ideal ? 'teal' : 'purple'} />
+        <StatBox label="Occurrences" value={String(keywordCount)} />
+        <StatBox label="Total Words" value={String(wordCount)} />
+      </div>}
+      {keyword && wordCount > 0 && <div className={`p-3 rounded-lg text-sm ${ideal ? 'bg-green-50 text-green-700' : 'bg-yellow-50 text-yellow-700'}`}>
+        {ideal ? '✓ Keyword density looks good (0.5-2.5% is ideal)' : +density < 0.5 ? '! Keyword density is low. Consider using your keyword more naturally.' : '⚠ Keyword density is high. Avoid keyword stuffing.'}
+      </div>}
     </div>
   );
 }
@@ -138,128 +178,226 @@ function WordCounter() {
   const paragraphs = text.split(/\n\n+/).filter(s => s.trim()).length;
   const readTime = Math.max(1, Math.ceil(words / 250));
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <textarea value={text} onChange={e => setText(e.target.value)} rows={10} placeholder="Paste or type your content here..." className="input-field resize-none" />
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <StatBox label="Words" value={String(words)} />
+      {text && <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <StatBox label="Words" value={String(words)} color="teal" />
         <StatBox label="Characters" value={String(chars)} />
-        <StatBox label="Characters (no spaces)" value={String(charsNoSpace)} />
+        <StatBox label="Chars (no spaces)" value={String(charsNoSpace)} />
         <StatBox label="Sentences" value={String(sentences)} />
         <StatBox label="Paragraphs" value={String(paragraphs)} />
-        <StatBox label="Reading Time" value={`${readTime} min`} />
-      </div>
+        <StatBox label="Reading Time" value={`${readTime} min`} color="teal" />
+      </div>}
     </div>
   );
 }
 
-function CharCounter() {
+function ReadabilityChecker() {
   const [text, setText] = useState('');
-  const [limit, setLimit] = useState(280);
-  const chars = text.length;
-  const remaining = limit - chars;
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  const sentences = text.split(/[.!?]+/).filter(s => s.trim());
+  const syllables = (word: string) => { const w = word.toLowerCase().replace(/[^a-z]/g, ''); if (w.length <= 3) return 1; const vowels = w.match(/[aeiouy]+/g); let c = vowels ? vowels.length : 1; if (w.endsWith('e')) c--; return Math.max(1, c); };
+  const totalSyllables = words.reduce((s, w) => s + syllables(w), 0);
+  const wc = words.length; const sc = sentences.length;
+  const flesch = wc > 0 && sc > 0 ? Math.max(0, Math.round(206.835 - 1.015 * (wc / sc) - 84.6 * (totalSyllables / wc))) : 0;
+  const grade = wc > 0 && sc > 0 ? Math.max(0, Math.round(0.39 * (wc / sc) + 11.8 * (totalSyllables / wc) - 15.59)) : 0;
+  const level = flesch >= 80 ? 'Very Easy' : flesch >= 60 ? 'Easy' : flesch >= 40 ? 'Standard' : flesch >= 20 ? 'Difficult' : 'Very Difficult';
   return (
-    <div className="space-y-6">
-      <textarea value={text} onChange={e => setText(e.target.value)} rows={6} placeholder="Type your text..." className="input-field resize-none" />
-      <div className="flex items-center gap-4">
-        <label className="text-sm font-medium text-gray-700">Limit:</label>
-        {[160, 280, 300, 500].map(l => (
-          <button key={l} onClick={() => setLimit(l)} className={`px-3 py-1 text-sm rounded-full ${limit === l ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600'}`}>{l}</button>
-        ))}
-      </div>
-      <div className="grid grid-cols-3 gap-4">
-        <StatBox label="Characters" value={String(chars)} />
-        <StatBox label="Remaining" value={String(remaining)} />
-        <div className={`p-4 rounded-lg text-center ${remaining >= 0 ? 'bg-green-50' : 'bg-red-50'}`}>
-          <div className={`text-2xl font-bold ${remaining >= 0 ? 'text-green-600' : 'text-red-600'}`}>{remaining >= 0 ? '✓' : '✗'}</div>
-          <div className="text-xs text-gray-500">Status</div>
-        </div>
-      </div>
+    <div className="space-y-4">
+      <textarea value={text} onChange={e => setText(e.target.value)} rows={8} placeholder="Paste your content to analyze readability..." className="input-field resize-none" />
+      {wc > 0 && <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <StatBox label="Flesch Score" value={String(flesch)} color={flesch >= 60 ? 'teal' : 'purple'} />
+        <StatBox label="Grade Level" value={String(grade)} />
+        <StatBox label="Readability" value={level} color={flesch >= 60 ? 'teal' : 'purple'} />
+        <StatBox label="Avg Words/Sentence" value={(wc / Math.max(1, sc)).toFixed(1)} />
+      </div>}
+      {wc > 0 && <div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-600">
+        <p><strong>Flesch Reading Ease:</strong> {flesch >= 60 ? 'Your content is easy to read for most audiences.' : 'Consider simplifying sentences for better readability.'}</p>
+        <p className="mt-2"><strong>Grade Level:</strong> Requires a grade {grade} reading level. Most web content should target grade 8-10.</p>
+      </div>}
     </div>
   );
 }
 
-function URLEncoder() {
+function InternalLinkAnalyzer() {
   const [input, setInput] = useState('');
-  const [mode, setMode] = useState<'encode' | 'decode'>('encode');
-  const output = (() => { try { return mode === 'encode' ? encodeURIComponent(input) : decodeURIComponent(input); } catch { return 'Invalid input'; } })();
+  const links = input.split('\n').filter(Boolean).map(l => { const [from, to] = l.split(/\s*[→>]+\s*/); return { from: from?.trim(), to: to?.trim() }; }).filter(l => l.from && l.to);
+  const pages = new Set(links.flatMap(l => [l.from, l.to]));
+  const inbound: Record<string, number> = {};
+  const outbound: Record<string, number> = {};
+  links.forEach(l => { inbound[l.to!] = (inbound[l.to!] || 0) + 1; outbound[l.from!] = (outbound[l.from!] || 0) + 1; });
+  const orphans = [...pages].filter(p => !inbound[p]);
   return (
-    <div className="space-y-6">
-      <div className="flex gap-2">
-        <button onClick={() => setMode('encode')} className={`px-4 py-2 rounded-lg text-sm font-medium ${mode === 'encode' ? 'bg-purple-600 text-white' : 'bg-gray-100'}`}>Encode</button>
-        <button onClick={() => setMode('decode')} className={`px-4 py-2 rounded-lg text-sm font-medium ${mode === 'decode' ? 'bg-purple-600 text-white' : 'bg-gray-100'}`}>Decode</button>
-      </div>
-      <div><label className="block text-sm font-medium text-gray-700 mb-1">Input</label><textarea value={input} onChange={e => setInput(e.target.value)} rows={4} placeholder={mode === 'encode' ? 'Enter text to encode...' : 'Enter URL-encoded text...'} className="input-field resize-none" /></div>
-      <div><label className="block text-sm font-medium text-gray-700 mb-1">Output</label><div className="p-4 bg-gray-50 rounded-lg font-mono text-sm break-all">{output || '—'}</div></div>
-      <CopyBtn text={output} />
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Links (from → to, one per line)</label><textarea value={input} onChange={e => setInput(e.target.value)} rows={8} placeholder="/home → /about\n/home → /blog\n/blog → /blog/post-1" className="input-field resize-none font-mono text-sm" /></div>
+      {pages.size > 0 && <div className="grid grid-cols-3 gap-4">
+        <StatBox label="Pages" value={String(pages.size)} color="teal" />
+        <StatBox label="Links" value={String(links.length)} />
+        <StatBox label="Orphans" value={String(orphans.length)} color={orphans.length > 0 ? 'purple' : 'teal'} />
+      </div>}
+      {orphans.length > 0 && <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg"><span className="font-medium text-yellow-700">⚠ Orphan pages (no inbound links):</span><ul className="mt-1 text-yellow-600 text-sm">{orphans.map(p => <li key={p}><code>{p}</code></li>)}</ul></div>}
+      {pages.size > 0 && <div className="space-y-1">{[...pages].sort().map(p => <div key={p} className="flex justify-between px-2 py-1 bg-gray-50 rounded text-sm"><code>{p}</code><span className="text-gray-500">In: {inbound[p] || 0} | Out: {outbound[p] || 0}</span></div>)}</div>}
     </div>
   );
 }
 
-function HeadingAnalyzer() {
-  const [title, setTitle] = useState('');
-  const analyze = () => {
-    if (!title.trim()) return null;
-    const words = title.trim().split(/\s+/);
-    const wordCount = words.length;
-    let score = 50;
-    if (wordCount >= 6 && wordCount <= 13) score += 15; else if (wordCount >= 4) score += 5;
-    if (title.length >= 40 && title.length <= 65) score += 10;
-    const powerWords = ['ultimate', 'free', 'proven', 'complete', 'guide', 'best', 'how', 'why', 'top', 'secret', 'easy', 'quick', 'essential', 'simple'];
-    const hasPower = powerWords.some(w => title.toLowerCase().includes(w));
-    if (hasPower) score += 10;
-    if (/\d/.test(title)) score += 10;
-    if (/[?!:]/.test(title)) score += 5;
-    return Math.min(100, score);
-  };
-  const score = analyze();
+function AltTextGenerator() {
+  const [subject, setSubject] = useState('');
+  const [action, setAction] = useState('');
+  const [context, setContext] = useState('');
+  const alt = (() => { if (!subject) return ''; let result = subject; if (action) result += ` ${action}`; if (context) result += ` — ${context}`; return result; })();
   return (
-    <div className="space-y-6">
-      <div><label className="block text-sm font-medium text-gray-700 mb-1">Your Headline</label><input value={title} onChange={e => setTitle(e.target.value)} placeholder="Enter your blog post headline..." className="input-field" /></div>
-      {score !== null && (
-        <>
-          <div className="flex items-center gap-4">
-            <div className={`text-5xl font-black ${score >= 70 ? 'text-green-600' : score >= 50 ? 'text-yellow-500' : 'text-red-500'}`}>{score}</div>
-            <div><div className="font-semibold text-gray-900">{score >= 70 ? 'Great headline!' : score >= 50 ? 'Decent headline' : 'Needs work'}</div><div className="text-sm text-gray-500">Score out of 100</div></div>
-          </div>
-          <div className="space-y-2 text-sm">
-            <div className={title.split(/\s+/).length >= 6 && title.split(/\s+/).length <= 13 ? 'text-green-600' : 'text-yellow-600'}>
-              {title.split(/\s+/).length >= 6 && title.split(/\s+/).length <= 13 ? '✓' : '!'} Word count: {title.split(/\s+/).length} (ideal: 6-13)
-            </div>
-            <div className={title.length >= 40 && title.length <= 65 ? 'text-green-600' : 'text-yellow-600'}>
-              {title.length >= 40 && title.length <= 65 ? '✓' : '!'} Character count: {title.length} (ideal: 40-65)
-            </div>
-            <div className={/\d/.test(title) ? 'text-green-600' : 'text-gray-400'}>{/\d/.test(title) ? '✓ Contains numbers' : '○ Try adding a number'}</div>
-            <div className={/[?!:]/.test(title) ? 'text-green-600' : 'text-gray-400'}>{/[?!:]/.test(title) ? '✓ Has emotional punctuation' : '○ Try adding a question mark or colon'}</div>
-          </div>
-        </>
-      )}
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Main Subject *</label><input value={subject} onChange={e => setSubject(e.target.value)} placeholder="e.g., Golden retriever puppy" className="input-field" /></div>
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Action / State</label><input value={action} onChange={e => setAction(e.target.value)} placeholder="e.g., running on a beach" className="input-field" /></div>
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Context / Purpose</label><input value={context} onChange={e => setContext(e.target.value)} placeholder="e.g., hero image for pet adoption page" className="input-field" /></div>
+      {alt && <><div className="p-4 bg-teal-50 rounded-lg"><span className="text-sm font-medium text-gray-500">Generated alt text:</span><p className="text-gray-900 mt-1 font-medium">"{alt}"</p></div><div className="text-xs text-gray-400">{alt.length} characters (aim for under 125)</div><CodeOutput label="HTML" code={`<img src="image.jpg" alt="${alt}" />`} /></>}
     </div>
   );
 }
 
-function OGPreview() {
-  const [title, setTitle] = useState('');
-  const [desc, setDesc] = useState('');
-  const [img, setImg] = useState('');
-  const [url, setUrl] = useState('');
+function AnchorTextAnalyzer() {
+  const [input, setInput] = useState('');
+  const anchors = input.split('\n').filter(Boolean).map(a => a.trim().toLowerCase());
+  const freq: Record<string, number> = {};
+  anchors.forEach(a => { freq[a] = (freq[a] || 0) + 1; });
+  const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]);
+  const total = anchors.length;
   return (
-    <div className="space-y-6">
-      <div><label className="block text-sm font-medium text-gray-700 mb-1">OG Title</label><input value={title} onChange={e => setTitle(e.target.value)} placeholder="Page title" className="input-field" /></div>
-      <div><label className="block text-sm font-medium text-gray-700 mb-1">OG Description</label><textarea value={desc} onChange={e => setDesc(e.target.value)} rows={2} placeholder="Description" className="input-field resize-none" /></div>
-      <div><label className="block text-sm font-medium text-gray-700 mb-1">OG Image URL</label><input value={img} onChange={e => setImg(e.target.value)} placeholder="https://example.com/image.jpg" className="input-field" /></div>
-      <div><label className="block text-sm font-medium text-gray-700 mb-1">URL</label><input value={url} onChange={e => setUrl(e.target.value)} placeholder="https://example.com" className="input-field" /></div>
-      <div>
-        <h4 className="text-sm font-medium text-gray-400 mb-3">Facebook Preview</h4>
-        <div className="border rounded-lg overflow-hidden max-w-lg">
-          {img && <div className="bg-gray-100 aspect-video"><img src={img} alt="" className="w-full h-full object-cover" onError={e => (e.currentTarget.style.display = 'none')} /></div>}
-          <div className="p-3 bg-gray-50">
-            <div className="text-xs text-gray-400 uppercase">{url ? new URL(url).hostname : 'example.com'}</div>
-            <div className="font-semibold text-gray-900">{title || 'Page Title'}</div>
-            <div className="text-sm text-gray-500 line-clamp-2">{desc || 'Page description'}</div>
-          </div>
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Anchor Texts (one per line)</label><textarea value={input} onChange={e => setInput(e.target.value)} rows={8} placeholder="your brand name\nbest seo tools\nclick here\nhttps://example.com" className="input-field resize-none" /></div>
+      {total > 0 && <><StatBox label="Total Anchors" value={String(total)} color="teal" /><div className="space-y-1">{sorted.slice(0, 20).map(([text, count]) => <div key={text} className="flex justify-between text-sm p-2 bg-gray-50 rounded"><span className="truncate">{text}</span><span className="text-gray-500 ml-2 whitespace-nowrap">{count}× ({((count/total)*100).toFixed(1)}%)</span></div>)}</div></>}
+    </div>
+  );
+}
+
+function ContentGapFinder() {
+  const [topic, setTopic] = useState('');
+  const suggestions = topic ? [
+    'What is ' + topic + '?',
+    'How to use ' + topic,
+    'Best practices for ' + topic,
+    topic + ' benefits and drawbacks',
+    topic + ' vs alternatives',
+    'Common ' + topic + ' mistakes',
+    topic + ' examples and case studies',
+    'Getting started with ' + topic,
+    topic + ' tools and resources',
+    'Advanced ' + topic + ' techniques',
+    topic + ' pricing and costs',
+    topic + ' for beginners',
+    'Future of ' + topic,
+    topic + ' statistics and data',
+    'Expert ' + topic + ' tips'
+  ] : [];
+  return (
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Topic</label><input value={topic} onChange={e => setTopic(e.target.value)} placeholder="e.g., SEO optimization" className="input-field" /></div>
+      {suggestions.length > 0 && <><h4 className="font-semibold text-gray-900">Suggested subtopics to cover:</h4><ul className="space-y-2">{suggestions.map((s, i) => <li key={i} className="p-3 bg-gray-50 rounded-lg text-sm flex items-start gap-2"><span className="text-purple-600">•</span><span>{s}</span></li>)}</ul></>}
+    </div>
+  );
+}
+
+function LSIKeywordGenerator() {
+  const [keyword, setKeyword] = useState('');
+  const lsi = keyword ? [
+    keyword + ' guide',
+    'best ' + keyword,
+    keyword + ' tips',
+    'how to ' + keyword,
+    keyword + ' tutorial',
+    keyword + ' strategies',
+    keyword + ' techniques',
+    keyword + ' tools',
+    keyword + ' examples',
+    keyword + ' checklist',
+    'free ' + keyword,
+    keyword + ' for beginners',
+    keyword + ' definition',
+    keyword + ' benefits',
+    keyword + ' optimization'
+  ] : [];
+  return (
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Seed Keyword</label><input value={keyword} onChange={e => setKeyword(e.target.value)} placeholder="e.g., content marketing" className="input-field" /></div>
+      {lsi.length > 0 && <><h4 className="font-semibold text-gray-900">LSI Keywords (semantically related terms):</h4><div className="flex flex-wrap gap-2">{lsi.map((k, i) => <span key={i} className="px-3 py-1.5 bg-purple-50 text-purple-700 rounded-full text-sm">{k}</span>)}</div><div className="mt-2"><CopyBtn text={lsi.join('\n')} /></div></>}
+    </div>
+  );
+}
+
+function FeaturedSnippetOptimizer() {
+  const [question, setQuestion] = useState('');
+  const [answer, setAnswer] = useState('');
+  return (
+    <div className="space-y-4">
+      <p className="text-sm text-gray-600">Format your content to target featured snippets (position zero) in Google.</p>
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Question (H2 or H3)</label><input value={question} onChange={e => setQuestion(e.target.value)} placeholder="What is SEO?" className="input-field" /></div>
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Concise Answer (40-60 words)</label><textarea value={answer} onChange={e => setAnswer(e.target.value)} rows={4} placeholder="SEO (Search Engine Optimization) is the practice of..." className="input-field resize-none" /><span className="text-xs text-gray-400">{answer.split(/\s+/).filter(Boolean).length} words</span></div>
+      {question && answer && <>
+        <div className="p-4 bg-teal-50 rounded-lg border-l-4 border-teal-500">
+          <h4 className="font-bold text-gray-900 text-lg mb-2">{question}</h4>
+          <p className="text-gray-700">{answer}</p>
         </div>
+        <div className="text-sm text-gray-600 space-y-1">
+          <p><strong>Tips for featured snippets:</strong></p>
+          <ul className="list-disc pl-5 space-y-1">
+            <li>Answer the question directly in 40-60 words</li>
+            <li>Use the question as an H2 or H3 heading</li>
+            <li>Place the answer immediately after the heading</li>
+            <li>Use lists, tables, or steps for how-to content</li>
+          </ul>
+        </div>
+      </>}
+    </div>
+  );
+}
+
+function ContentLengthCalculator() {
+  const [topic, setTopic] = useState('');
+  const [competition, setCompetition] = useState('medium');
+  const recommended = competition === 'low' ? '800-1200' : competition === 'medium' ? '1500-2500' : '2500-4000';
+  return (
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Topic/Keyword</label><input value={topic} onChange={e => setTopic(e.target.value)} placeholder="e.g., email marketing strategies" className="input-field" /></div>
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Competition Level</label><select value={competition} onChange={e => setCompetition(e.target.value)} className="input-field"><option value="low">Low (newer keywords)</option><option value="medium">Medium (standard topics)</option><option value="high">High (competitive topics)</option></select></div>
+      {topic && <div className="p-4 bg-teal-50 rounded-lg text-center"><div className="text-3xl font-bold text-teal-600">{recommended}</div><div className="text-sm text-gray-600 mt-1">Recommended word count</div><div className="text-xs text-gray-500 mt-2">Based on {competition} competition level</div></div>}
+    </div>
+  );
+}
+
+// ============================================================================
+// TECHNICAL SEO TOOLS (16-30)
+// ============================================================================
+
+function RobotsGenerator() {
+  const [userAgent, setUserAgent] = useState('*');
+  const [disallow, setDisallow] = useState('/admin/\n/private/');
+  const [allow, setAllow] = useState('');
+  const [sitemap, setSitemap] = useState('https://example.com/sitemap.xml');
+  const output = `User-agent: ${userAgent}\n${allow ? allow.split('\n').filter(Boolean).map(a => `Allow: ${a}`).join('\n') + '\n' : ''}${disallow.split('\n').filter(Boolean).map(d => `Disallow: ${d}`).join('\n')}\n\nSitemap: ${sitemap}`;
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div><label className="block text-sm font-medium text-gray-700 mb-1">User-agent</label><input value={userAgent} onChange={e => setUserAgent(e.target.value)} className="input-field" /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1">Sitemap URL</label><input value={sitemap} onChange={e => setSitemap(e.target.value)} className="input-field" /></div>
       </div>
-      <CodeOutput label="OG Meta Tags" code={`<meta property="og:title" content="${title}" />\n<meta property="og:description" content="${desc}" />\n<meta property="og:image" content="${img}" />\n<meta property="og:url" content="${url}" />\n<meta property="og:type" content="website" />`} />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div><label className="block text-sm font-medium text-gray-700 mb-1">Allow (one per line)</label><textarea value={allow} onChange={e => setAllow(e.target.value)} rows={3} placeholder="/public/\n/assets/" className="input-field resize-none font-mono text-sm" /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1">Disallow (one per line)</label><textarea value={disallow} onChange={e => setDisallow(e.target.value)} rows={3} className="input-field resize-none font-mono text-sm" /></div>
+      </div>
+      <CodeOutput label="robots.txt" code={output} />
+    </div>
+  );
+}
+
+function XMLSitemapGenerator() {
+  const [urls, setUrls] = useState('https://example.com/\nhttps://example.com/about\nhttps://example.com/blog');
+  const today = new Date().toISOString().split('T')[0];
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.split('\n').filter(u => u.trim()).map(u => `  <url>\n    <loc>${u.trim()}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>`).join('\n')}\n</urlset>`;
+  return (
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">URLs (one per line)</label><textarea value={urls} onChange={e => setUrls(e.target.value)} rows={8} placeholder="https://example.com/\nhttps://example.com/page" className="input-field resize-none font-mono text-sm" /></div>
+      <CodeOutput label="sitemap.xml" code={xml} />
     </div>
   );
 }
@@ -267,104 +405,118 @@ function OGPreview() {
 function SchemaGenerator() {
   const [type, setType] = useState('Article');
   const [fields, setFields] = useState<Record<string, string>>({ headline: '', author: '', datePublished: '', description: '' });
-  const schema = type === 'Article' ? {
-    '@context': 'https://schema.org', '@type': 'Article',
-    headline: fields.headline, author: { '@type': 'Person', name: fields.author },
-    datePublished: fields.datePublished, description: fields.description
-  } : type === 'FAQPage' ? {
-    '@context': 'https://schema.org', '@type': 'FAQPage',
-    mainEntity: [{ '@type': 'Question', name: fields.question || '', acceptedAnswer: { '@type': 'Answer', text: fields.answer || '' } }]
-  } : {
-    '@context': 'https://schema.org', '@type': 'Organization',
-    name: fields.orgName || '', url: fields.orgUrl || '', description: fields.orgDesc || ''
+  const update = (k: string, v: string) => setFields(f => ({ ...f, [k]: v }));
+  const schemas: Record<string, any> = {
+    Article: { '@context': 'https://schema.org', '@type': 'Article', headline: fields.headline, author: { '@type': 'Person', name: fields.author }, datePublished: fields.datePublished, description: fields.description },
+    FAQPage: { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: [{ '@type': 'Question', name: fields.question, acceptedAnswer: { '@type': 'Answer', text: fields.answer } }] },
+    HowTo: { '@context': 'https://schema.org', '@type': 'HowTo', name: fields.name, description: fields.description, step: [{ '@type': 'HowToStep', text: fields.step1 }] },
+    Product: { '@context': 'https://schema.org', '@type': 'Product', name: fields.name, description: fields.description, brand: { '@type': 'Brand', name: fields.brand }, offers: { '@type': 'Offer', price: fields.price, priceCurrency: 'USD' } },
+    LocalBusiness: { '@context': 'https://schema.org', '@type': 'LocalBusiness', name: fields.name, address: { '@type': 'PostalAddress', streetAddress: fields.street, addressLocality: fields.city, addressRegion: fields.state, postalCode: fields.zip }, telephone: fields.phone },
+    Recipe: { '@context': 'https://schema.org', '@type': 'Recipe', name: fields.name, description: fields.description, recipeIngredient: (fields.ingredients || '').split('\n').filter(Boolean), recipeInstructions: fields.instructions }
   };
-  const faqFields = type === 'FAQPage';
-  const orgFields = type === 'Organization';
+  const fieldDefs: Record<string, string[]> = {
+    Article: ['headline', 'author', 'datePublished', 'description'],
+    FAQPage: ['question', 'answer'],
+    HowTo: ['name', 'description', 'step1'],
+    Product: ['name', 'description', 'brand', 'price'],
+    LocalBusiness: ['name', 'street', 'city', 'state', 'zip', 'phone'],
+    Recipe: ['name', 'description', 'ingredients', 'instructions']
+  };
+  const output = JSON.stringify(schemas[type], null, 2);
   return (
-    <div className="space-y-6">
-      <div className="flex gap-2">
-        {['Article', 'FAQPage', 'Organization'].map(t => (
-          <button key={t} onClick={() => { setType(t); setFields({}); }} className={`px-4 py-2 rounded-lg text-sm font-medium ${type === t ? 'bg-purple-600 text-white' : 'bg-gray-100'}`}>{t}</button>
-        ))}
-      </div>
-      {!faqFields && !orgFields && <>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">Headline</label><input value={fields.headline || ''} onChange={e => setFields({ ...fields, headline: e.target.value })} className="input-field" /></div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">Author</label><input value={fields.author || ''} onChange={e => setFields({ ...fields, author: e.target.value })} className="input-field" /></div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">Date Published</label><input type="date" value={fields.datePublished || ''} onChange={e => setFields({ ...fields, datePublished: e.target.value })} className="input-field" /></div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">Description</label><textarea value={fields.description || ''} onChange={e => setFields({ ...fields, description: e.target.value })} rows={2} className="input-field resize-none" /></div>
-      </>}
-      {faqFields && <>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">Question</label><input value={fields.question || ''} onChange={e => setFields({ ...fields, question: e.target.value })} className="input-field" /></div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">Answer</label><textarea value={fields.answer || ''} onChange={e => setFields({ ...fields, answer: e.target.value })} rows={3} className="input-field resize-none" /></div>
-      </>}
-      {orgFields && <>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">Organization Name</label><input value={fields.orgName || ''} onChange={e => setFields({ ...fields, orgName: e.target.value })} className="input-field" /></div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">URL</label><input value={fields.orgUrl || ''} onChange={e => setFields({ ...fields, orgUrl: e.target.value })} className="input-field" /></div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">Description</label><textarea value={fields.orgDesc || ''} onChange={e => setFields({ ...fields, orgDesc: e.target.value })} rows={2} className="input-field resize-none" /></div>
-      </>}
-      <CodeOutput label="JSON-LD Schema" code={JSON.stringify(schema, null, 2)} />
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Schema Type</label><select value={type} onChange={e => { setType(e.target.value); setFields({}); }} className="input-field">{Object.keys(fieldDefs).map(t => <option key={t}>{t}</option>)}</select></div>
+      {(fieldDefs[type] || []).map(f => <div key={f}><label className="block text-sm font-medium text-gray-700 mb-1 capitalize">{f.replace(/([A-Z])/g, ' $1')}</label>{f.includes('ingredients') || f.includes('instructions') ? <textarea value={fields[f] || ''} onChange={e => update(f, e.target.value)} rows={3} className="input-field resize-none" /> : <input value={fields[f] || ''} onChange={e => update(f, e.target.value)} className="input-field" type={f.includes('date') ? 'date' : f === 'price' ? 'number' : 'text'} />}</div>)}
+      <CodeOutput label="JSON-LD Schema" code={`<script type="application/ld+json">\n${output}\n</script>`} />
     </div>
   );
 }
 
-function SlugGenerator() {
+function CanonicalBuilder() {
+  const [url, setUrl] = useState('');
+  const tag = `<link rel="canonical" href="${url}" />`;
+  return (
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Canonical URL</label><input value={url} onChange={e => setUrl(e.target.value)} placeholder="https://example.com/page" className="input-field" /></div>
+      {url && <><div className="p-3 bg-gray-50 rounded-lg text-sm text-gray-600"><p><strong>What is a canonical tag?</strong> It tells search engines which version of a page is the "master" copy when you have duplicate or similar content.</p><p className="mt-2"><strong>Use cases:</strong> Same content on multiple URLs, URL parameters, print versions, pagination.</p></div><CodeOutput label="Canonical Tag" code={tag} /></>}
+    </div>
+  );
+}
+
+function HreflangGenerator() {
+  const [entries, setEntries] = useState([{ lang: 'en', url: 'https://example.com/' }, { lang: 'es', url: 'https://example.com/es/' }]);
+  const add = () => setEntries([...entries, { lang: '', url: '' }]);
+  const remove = (i: number) => setEntries(entries.filter((_, j) => j !== i));
+  const update = (i: number, field: 'lang' | 'url', value: string) => { const n = [...entries]; n[i][field] = value; setEntries(n); };
+  const tags = entries.filter(e => e.lang && e.url).map(e => `<link rel="alternate" hreflang="${e.lang}" href="${e.url}" />`).join('\n') + (entries[0]?.url ? `\n<link rel="alternate" hreflang="x-default" href="${entries[0].url}" />` : '');
+  return (
+    <div className="space-y-4">
+      {entries.map((e, i) => <div key={i} className="flex gap-2"><input value={e.lang} onChange={ev => update(i, 'lang', ev.target.value)} placeholder="en" className="input-field w-24" /><input value={e.url} onChange={ev => update(i, 'url', ev.target.value)} placeholder="https://..." className="input-field flex-1" /><button onClick={() => remove(i)} className="text-red-400 hover:text-red-600 px-2">✗</button></div>)}
+      <button onClick={add} className="text-sm text-purple-600 font-medium">+ Add language</button>
+      {entries.some(e => e.lang && e.url) && <CodeOutput label="Hreflang Tags" code={tags} />}
+    </div>
+  );
+}
+
+function OGGenerator() {
+  const [title, setTitle] = useState('');
+  const [desc, setDesc] = useState('');
+  const [img, setImg] = useState('');
+  const [url, setUrl] = useState('');
+  const tags = `<meta property="og:title" content="${title}" />\n<meta property="og:description" content="${desc}" />\n<meta property="og:image" content="${img}" />\n<meta property="og:url" content="${url}" />\n<meta property="og:type" content="website" />`;
+  return (
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">OG Title</label><input value={title} onChange={e => setTitle(e.target.value)} placeholder="Page title" className="input-field" /></div>
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">OG Description</label><textarea value={desc} onChange={e => setDesc(e.target.value)} rows={2} placeholder="Description" className="input-field resize-none" /></div>
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">OG Image URL</label><input value={img} onChange={e => setImg(e.target.value)} placeholder="https://example.com/image.jpg (1200x630)" className="input-field" /></div>
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">URL</label><input value={url} onChange={e => setUrl(e.target.value)} placeholder="https://example.com" className="input-field" /></div>
+      {title && <><h4 className="text-sm font-medium text-gray-700 mt-4">Facebook Preview</h4><div className="border rounded-lg overflow-hidden max-w-lg">{img && <div className="bg-gray-100 aspect-video"><img src={img} alt="" className="w-full h-full object-cover" onError={e => (e.currentTarget.style.display = 'none')} /></div>}<div className="p-3 bg-gray-50"><div className="text-xs text-gray-400 uppercase">{url ? new URL(url).hostname : 'example.com'}</div><div className="font-semibold text-gray-900">{title}</div><div className="text-sm text-gray-500 line-clamp-2">{desc}</div></div></div><CodeOutput label="Open Graph Tags" code={tags} /></>}
+    </div>
+  );
+}
+
+function TwitterCardGenerator() {
+  const [title, setTitle] = useState('');
+  const [desc, setDesc] = useState('');
+  const [img, setImg] = useState('');
+  const [site, setSite] = useState('');
+  const tags = `<meta name="twitter:card" content="summary_large_image" />\n<meta name="twitter:site" content="${site}" />\n<meta name="twitter:title" content="${title}" />\n<meta name="twitter:description" content="${desc}" />\n<meta name="twitter:image" content="${img}" />`;
+  return (
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Title</label><input value={title} onChange={e => setTitle(e.target.value)} placeholder="Page title" className="input-field" /></div>
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Description</label><textarea value={desc} onChange={e => setDesc(e.target.value)} rows={2} className="input-field resize-none" /></div>
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label><input value={img} onChange={e => setImg(e.target.value)} placeholder="https://... (1200x628)" className="input-field" /></div>
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">@site handle</label><input value={site} onChange={e => setSite(e.target.value)} placeholder="@yoursite" className="input-field" /></div>
+      {title && <><h4 className="text-sm font-medium text-gray-700">Twitter Preview</h4><div className="border rounded-2xl overflow-hidden max-w-lg">{img && <div className="bg-gray-100 aspect-video"><img src={img} alt="" className="w-full h-full object-cover" onError={e => (e.currentTarget.style.display = 'none')} /></div>}<div className="p-3 border-t"><div className="text-xs text-gray-400">{site || 'example.com'}</div><div className="font-semibold text-gray-900 text-sm">{title}</div><div className="text-xs text-gray-500 line-clamp-2">{desc}</div></div></div><CodeOutput label="Twitter Card Tags" code={tags} /></>}
+    </div>
+  );
+}
+
+function StructuredDataValidator() {
   const [input, setInput] = useState('');
-  const slug = input.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/[\s_]+/g, '-').replace(/-+/g, '-').replace(/(^-|-$)/g, '');
-  return (
-    <div className="space-y-6">
-      <div><label className="block text-sm font-medium text-gray-700 mb-1">Text</label><input value={input} onChange={e => setInput(e.target.value)} placeholder="Enter a title or text..." className="input-field" /></div>
-      <div><label className="block text-sm font-medium text-gray-700 mb-1">URL Slug</label><div className="p-4 bg-gray-50 rounded-lg font-mono text-sm">{slug || '—'}</div></div>
-      <CopyBtn text={slug} />
-    </div>
-  );
-}
-
-function LoremGenerator() {
-  const [paragraphs, setParagraphs] = useState(3);
-  const lorem = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.';
-  const variants = [
-    lorem,
-    'Curabitur pretium tincidunt lacus. Nulla gravida orci a odio. Nullam varius, turpis et commodo pharetra, est eros bibendum elit, nec luctus magna felis sollicitudin mauris. Integer in mauris eu nibh euismod gravida.',
-    'Praesent sapien massa, convallis a pellentesque nec, egestas non nisi. Donec sollicitudin molestie malesuada. Vestibulum ac diam sit amet quam vehicula elementum sed sit amet dui. Pellentesque in ipsum id orci porta dapibus.',
-    'Vivamus magna justo, lacinia eget consectetur sed, convallis at tellus. Nulla quis lorem ut libero malesuada feugiat. Curabitur arcu erat, accumsan id imperdiet et, porttitor at sem. Mauris blandit aliquet elit, eget tincidunt nibh pulvinar a.',
-    'Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.',
-  ];
-  const output = Array.from({ length: paragraphs }, (_, i) => variants[i % variants.length]).join('\n\n');
-  return (
-    <div className="space-y-6">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Paragraphs: {paragraphs}</label>
-        <input type="range" min={1} max={10} value={paragraphs} onChange={e => setParagraphs(+e.target.value)} className="w-full" />
-      </div>
-      <div className="p-4 bg-gray-50 rounded-lg text-sm text-gray-600 whitespace-pre-line max-h-80 overflow-y-auto">{output}</div>
-      <CopyBtn text={output} />
-    </div>
-  );
-}
-
-function CaseConverter() {
-  const [input, setInput] = useState('');
-  const [mode, setMode] = useState('title');
-  const convert = () => {
-    switch (mode) {
-      case 'upper': return input.toUpperCase();
-      case 'lower': return input.toLowerCase();
-      case 'title': return input.replace(/\w\S*/g, t => t.charAt(0).toUpperCase() + t.substring(1).toLowerCase());
-      case 'sentence': return input.charAt(0).toUpperCase() + input.slice(1).toLowerCase();
-      case 'toggle': return input.split('').map(c => c === c.toUpperCase() ? c.toLowerCase() : c.toUpperCase()).join('');
-      default: return input;
+  const [error, setError] = useState('');
+  const [valid, setValid] = useState(false);
+  const validate = () => {
+    try {
+      const parsed = JSON.parse(input);
+      if (!parsed['@context'] || !parsed['@type']) {
+        setError('Missing @context or @type field');
+        setValid(false);
+      } else {
+        setError('');
+        setValid(true);
+      }
+    } catch (e: any) {
+      setError(e.message);
+      setValid(false);
     }
   };
   return (
-    <div className="space-y-6">
-      <textarea value={input} onChange={e => setInput(e.target.value)} rows={4} placeholder="Enter text to convert..." className="input-field resize-none" />
-      <div className="flex flex-wrap gap-2">
-        {[['upper', 'UPPERCASE'], ['lower', 'lowercase'], ['title', 'Title Case'], ['sentence', 'Sentence case'], ['toggle', 'tOGGLE']].map(([k, l]) => (
-          <button key={k} onClick={() => setMode(k)} className={`px-3 py-1.5 rounded-lg text-sm font-medium ${mode === k ? 'bg-purple-600 text-white' : 'bg-gray-100'}`}>{l}</button>
-        ))}
-      </div>
-      <div className="p-4 bg-gray-50 rounded-lg text-sm">{convert() || '—'}</div>
-      <CopyBtn text={convert()} />
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Paste JSON-LD</label><textarea value={input} onChange={e => { setInput(e.target.value); if (e.target.value) validate(); }} onBlur={validate} rows={12} placeholder='{\n  "@context": "https://schema.org",\n  "@type": "Article",\n  "headline": "..."\n}' className="input-field resize-none font-mono text-sm" /></div>
+      {input && <div className={`p-3 rounded-lg ${valid ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+        {valid ? <><strong>✓ Valid JSON-LD</strong><p className="text-sm mt-1">Syntax is correct. For full schema.org validation, use Google's Rich Results Test.</p></> : <><strong>✗ Invalid JSON</strong><p className="text-sm mt-1">{error}</p></>}
+      </div>}
     </div>
   );
 }
@@ -376,101 +528,481 @@ function HtaccessGenerator() {
     return from && to ? `Redirect 301 ${from} ${to}` : '';
   }).filter(Boolean).join('\n');
   return (
-    <div className="space-y-6">
-      <div><label className="block text-sm font-medium text-gray-700 mb-1">Redirects (old-path new-path, one per line)</label>
-        <textarea value={redirects} onChange={e => setRedirects(e.target.value)} rows={6} placeholder="/old-page /new-page" className="input-field resize-none font-mono text-sm" /></div>
-      <CodeOutput label=".htaccess Rules" code={output} />
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Redirects (old-path new-path, one per line)</label><textarea value={redirects} onChange={e => setRedirects(e.target.value)} rows={6} placeholder="/old-page /new-page" className="input-field resize-none font-mono text-sm" /></div>
+      {output && <CodeOutput label=".htaccess 301 Redirects" code={output} />}
     </div>
   );
 }
 
-function XMLSitemapGenerator() {
-  const [urls, setUrls] = useState('https://example.com/\nhttps://example.com/about\nhttps://example.com/blog');
-  const today = new Date().toISOString().split('T')[0];
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.split('\n').filter(u => u.trim()).map(u => `  <url>\n    <loc>${u.trim()}</loc>\n    <lastmod>${today}</lastmod>\n    <changefreq>weekly</changefreq>\n    <priority>0.8</priority>\n  </url>`).join('\n')}\n</urlset>`;
-  return (
-    <div className="space-y-6">
-      <div><label className="block text-sm font-medium text-gray-700 mb-1">URLs (one per line)</label>
-        <textarea value={urls} onChange={e => setUrls(e.target.value)} rows={6} className="input-field resize-none font-mono text-sm" /></div>
-      <CodeOutput label="sitemap.xml" code={xml} />
-    </div>
-  );
-}
-
-function HreflangGenerator() {
-  const [entries, setEntries] = useState([{ lang: 'en', url: 'https://example.com/' }, { lang: 'es', url: 'https://example.com/es/' }]);
-  const tags = entries.map(e => `<link rel="alternate" hreflang="${e.lang}" href="${e.url}" />`).join('\n') + `\n<link rel="alternate" hreflang="x-default" href="${entries[0]?.url || ''}" />`;
-  return (
-    <div className="space-y-6">
-      {entries.map((e, i) => (
-        <div key={i} className="flex gap-2">
-          <input value={e.lang} onChange={ev => { const n = [...entries]; n[i].lang = ev.target.value; setEntries(n); }} placeholder="en" className="input-field w-24" />
-          <input value={e.url} onChange={ev => { const n = [...entries]; n[i].url = ev.target.value; setEntries(n); }} placeholder="https://..." className="input-field flex-1" />
-          <button onClick={() => setEntries(entries.filter((_, j) => j !== i))} className="text-red-400 hover:text-red-600 text-sm">✗</button>
-        </div>
-      ))}
-      <button onClick={() => setEntries([...entries, { lang: '', url: '' }])} className="text-sm text-purple-600 font-medium">+ Add language</button>
-      <CodeOutput label="Hreflang Tags" code={tags} />
-    </div>
-  );
-}
-
-function CanonicalChecker() {
-  const [url, setUrl] = useState('');
-  const [canonical, setCanonical] = useState('');
-  const match = url && canonical ? url.trim() === canonical.trim() : null;
-  return (
-    <div className="space-y-6">
-      <div><label className="block text-sm font-medium text-gray-700 mb-1">Page URL</label><input value={url} onChange={e => setUrl(e.target.value)} placeholder="https://example.com/page" className="input-field" /></div>
-      <div><label className="block text-sm font-medium text-gray-700 mb-1">Canonical URL</label><input value={canonical} onChange={e => setCanonical(e.target.value)} placeholder="https://example.com/page" className="input-field" /></div>
-      {match !== null && (
-        <div className={`p-4 rounded-lg ${match ? 'bg-green-50' : 'bg-yellow-50'}`}>
-          <div className={`font-semibold ${match ? 'text-green-700' : 'text-yellow-700'}`}>{match ? '✓ Self-referencing canonical — correct!' : '⚠ Canonical differs from page URL — this is a cross-domain or consolidation canonical.'}</div>
-        </div>
-      )}
-      {canonical && <CodeOutput label="Canonical Tag" code={`<link rel="canonical" href="${canonical}" />`} />}
-    </div>
-  );
-}
-
-function ReadabilityChecker() {
-  const [text, setText] = useState('');
-  const words = text.trim().split(/\s+/).filter(Boolean);
-  const sentences = text.split(/[.!?]+/).filter(s => s.trim());
-  const syllables = (word: string) => { const w = word.toLowerCase().replace(/[^a-z]/g, ''); let c = 0; if (w.length <= 3) return 1; const vowels = w.match(/[aeiouy]+/g); c = vowels ? vowels.length : 1; if (w.endsWith('e')) c--; return Math.max(1, c); };
-  const totalSyllables = words.reduce((s, w) => s + syllables(w), 0);
-  const wc = words.length; const sc = sentences.length;
-  const flesch = wc > 0 && sc > 0 ? Math.round(206.835 - 1.015 * (wc / sc) - 84.6 * (totalSyllables / wc)) : 0;
-  const grade = wc > 0 && sc > 0 ? Math.round(0.39 * (wc / sc) + 11.8 * (totalSyllables / wc) - 15.59) : 0;
-  const level = flesch >= 80 ? 'Easy' : flesch >= 60 ? 'Standard' : flesch >= 40 ? 'Difficult' : 'Very Difficult';
-  return (
-    <div className="space-y-6">
-      <textarea value={text} onChange={e => setText(e.target.value)} rows={8} placeholder="Paste your content to analyze..." className="input-field resize-none" />
-      {wc > 0 && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatBox label="Flesch Score" value={String(Math.max(0, flesch))} />
-          <StatBox label="Grade Level" value={String(Math.max(0, grade))} />
-          <StatBox label="Readability" value={level} />
-          <StatBox label="Avg Words/Sentence" value={(wc / Math.max(1, sc)).toFixed(1)} />
-        </div>
-      )}
-    </div>
-  );
-}
-
-function Base64Tool() {
+function SlugGenerator() {
   const [input, setInput] = useState('');
-  const [mode, setMode] = useState<'encode' | 'decode'>('encode');
-  const output = (() => { try { return mode === 'encode' ? btoa(input) : atob(input); } catch { return 'Invalid input'; } })();
+  const slug = input.toLowerCase().trim().replace(/[^a-z0-9\s-]/g, '').replace(/[\s_]+/g, '-').replace(/-+/g, '-').replace(/(^-|-$)/g, '');
   return (
-    <div className="space-y-6">
-      <div className="flex gap-2">
-        <button onClick={() => setMode('encode')} className={`px-4 py-2 rounded-lg text-sm font-medium ${mode === 'encode' ? 'bg-purple-600 text-white' : 'bg-gray-100'}`}>Encode</button>
-        <button onClick={() => setMode('decode')} className={`px-4 py-2 rounded-lg text-sm font-medium ${mode === 'decode' ? 'bg-purple-600 text-white' : 'bg-gray-100'}`}>Decode</button>
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Title or Text</label><input value={input} onChange={e => setInput(e.target.value)} placeholder="10 Best SEO Tools for 2026" className="input-field" /></div>
+      {slug && <><div className="p-4 bg-teal-50 rounded-lg"><span className="text-sm text-gray-600">URL Slug:</span><div className="font-mono text-lg font-medium text-gray-900 mt-1">{slug}</div></div><div className="text-xs text-gray-400">Full URL: https://example.com/{slug}</div><CopyBtn text={slug} /></>}
+    </div>
+  );
+}
+
+function BreadcrumbSchema() {
+  const [items, setItems] = useState([{ name: 'Home', url: 'https://example.com/' }, { name: 'Blog', url: 'https://example.com/blog/' }, { name: 'Post Title', url: '' }]);
+  const add = () => setItems([...items, { name: '', url: '' }]);
+  const remove = (i: number) => setItems(items.filter((_, j) => j !== i));
+  const update = (i: number, field: 'name' | 'url', value: string) => { const n = [...items]; n[i][field] = value; setItems(n); };
+  const schema = { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: items.filter(it => it.name).map((it, i) => ({ '@type': 'ListItem', position: i + 1, name: it.name, ...(it.url ? { item: it.url } : {}) })) };
+  return (
+    <div className="space-y-4">
+      {items.map((it, i) => <div key={i} className="flex gap-2 items-center"><input value={it.name} onChange={e => update(i, 'name', e.target.value)} placeholder="Name" className="input-field w-40" /><input value={it.url} onChange={e => update(i, 'url', e.target.value)} placeholder="URL (blank for current)" className="input-field flex-1" /><button onClick={() => remove(i)} className="text-red-400 px-2">✗</button></div>)}
+      <button onClick={add} className="text-sm text-purple-600 font-medium">+ Add level</button>
+      <CodeOutput label="Breadcrumb JSON-LD" code={JSON.stringify(schema, null, 2)} />
+    </div>
+  );
+}
+
+function FAQSchema() {
+  const [faqs, setFaqs] = useState([{ q: '', a: '' }, { q: '', a: '' }]);
+  const add = () => setFaqs([...faqs, { q: '', a: '' }]);
+  const remove = (i: number) => setFaqs(faqs.filter((_, j) => j !== i));
+  const update = (i: number, field: 'q' | 'a', value: string) => { const n = [...faqs]; n[i][field] = value; setFaqs(n); };
+  const schema = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faqs.filter(f => f.q && f.a).map(f => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
+  return (
+    <div className="space-y-4">
+      {faqs.map((f, i) => <div key={i} className="p-4 border rounded-lg space-y-2"><div className="flex justify-between"><span className="text-sm font-medium text-gray-700">FAQ #{i + 1}</span><button onClick={() => remove(i)} className="text-red-400 text-sm">Remove</button></div><input value={f.q} onChange={e => update(i, 'q', e.target.value)} placeholder="Question" className="input-field" /><textarea value={f.a} onChange={e => update(i, 'a', e.target.value)} rows={2} placeholder="Answer" className="input-field resize-none" /></div>)}
+      <button onClick={add} className="text-sm text-purple-600 font-medium">+ Add FAQ</button>
+      <CodeOutput label="FAQ Schema (JSON-LD)" code={JSON.stringify(schema, null, 2)} />
+    </div>
+  );
+}
+
+function PageSpeedChecklist() {
+  const [checked, setChecked] = useState<Set<string>>(new Set());
+  const toggle = (id: string) => setChecked(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const items = [
+    ['i1','Enable Gzip/Brotli compression'],['i2','Minify CSS, JS, HTML'],['i3','Optimize images (WebP, compression)'],['i4','Use a CDN'],['i5','Enable browser caching'],['i6','Reduce server response time (TTFB < 200ms)'],['i7','Eliminate render-blocking resources'],['i8','Lazy load images below the fold'],['i9','Use font-display: swap for web fonts'],['i10','Preload critical resources'],['i11','Remove unused CSS/JS'],['i12','Optimize critical rendering path'],['i13','Use HTTP/2 or HTTP/3'],['i14','Implement resource hints (preconnect, prefetch)'],['i15','Minimize redirects'],['i16','Inline critical CSS'],['i17','Defer non-critical JavaScript'],['i18','Use async for third-party scripts'],['i19','Reduce DOM size (<1500 nodes)'],['i20','Avoid enormous network payloads'],['i21','Serve static assets with long cache lifetimes'],['i22','Avoid document.write()'],['i23','Use efficient cache policy'],['i24','Minimize main-thread work'],['i25','Keep request counts low'],['i26','Minimize payload sizes'],['i27','Avoid legacy JavaScript'],['i28','Preconnect to required origins'],['i29','Use video formats for animated content'],['i30','Implement proper image sizing']
+  ];
+  const pct = Math.round((checked.size / items.length) * 100);
+  return (
+    <div className="space-y-4">
+      <div className="text-center p-4 bg-gradient-to-r from-purple-50 to-teal-50 rounded-lg"><div className="text-4xl font-bold text-purple-600">{pct}%</div><div className="text-sm text-gray-600 mt-1">{checked.size}/{items.length} optimizations completed</div><div className="w-full bg-gray-200 rounded-full h-2 mt-3"><div className="bg-purple-600 h-2 rounded-full transition-all" style={{width:`${pct}%`}} /></div></div>
+      <div className="space-y-1">{items.map(([id, label]) => <label key={id} className="flex items-start gap-2 p-2 bg-gray-50 hover:bg-gray-100 rounded cursor-pointer text-sm"><input type="checkbox" checked={checked.has(id)} onChange={() => toggle(id)} className="mt-0.5" /><span className={checked.has(id) ? 'line-through text-gray-400' : ''}>{label}</span></label>)}</div>
+    </div>
+  );
+}
+
+function CoreWebVitalsGuide() {
+  return (
+    <div className="space-y-6 prose prose-sm max-w-none">
+      <div className="p-4 bg-gradient-to-r from-purple-50 to-teal-50 rounded-lg">
+        <h3 className="text-lg font-bold text-gray-900 mt-0">Core Web Vitals — Google's User Experience Metrics</h3>
+        <p className="text-sm text-gray-600 mb-0">Core Web Vitals are a set of real-world user-centric metrics that measure key aspects of user experience on the web.</p>
       </div>
-      <textarea value={input} onChange={e => setInput(e.target.value)} rows={4} placeholder="Enter text..." className="input-field resize-none" />
-      <div className="p-4 bg-gray-50 rounded-lg font-mono text-sm break-all max-h-40 overflow-y-auto">{output || '—'}</div>
-      <CopyBtn text={output} />
+      
+      <div className="border-l-4 border-teal-500 pl-4 bg-teal-50 p-4 rounded">
+        <h4 className="font-bold text-teal-900 mt-0">LCP — Largest Contentful Paint</h4>
+        <p className="text-sm"><strong>What it measures:</strong> Loading performance. Time until the largest content element becomes visible.</p>
+        <p className="text-sm"><strong>Good:</strong> &lt; 2.5 seconds | <strong>Needs Improvement:</strong> 2.5-4s | <strong>Poor:</strong> &gt; 4s</p>
+        <p className="text-sm mb-0"><strong>How to improve:</strong></p>
+        <ul className="text-sm space-y-1">
+          <li>Optimize server response times</li>
+          <li>Use a CDN</li>
+          <li>Optimize and compress images (WebP)</li>
+          <li>Preload critical resources</li>
+          <li>Remove render-blocking resources</li>
+        </ul>
+      </div>
+      
+      <div className="border-l-4 border-purple-500 pl-4 bg-purple-50 p-4 rounded">
+        <h4 className="font-bold text-purple-900 mt-0">INP — Interaction to Next Paint</h4>
+        <p className="text-sm"><strong>What it measures:</strong> Interactivity. Latency of user interactions (clicks, taps, keyboard).</p>
+        <p className="text-sm"><strong>Good:</strong> &lt; 200ms | <strong>Needs Improvement:</strong> 200-500ms | <strong>Poor:</strong> &gt; 500ms</p>
+        <p className="text-sm mb-0"><strong>How to improve:</strong></p>
+        <ul className="text-sm space-y-1">
+          <li>Minimize JavaScript execution time</li>
+          <li>Break up long tasks</li>
+          <li>Optimize event handlers</li>
+          <li>Use web workers for heavy computations</li>
+          <li>Defer non-critical scripts</li>
+        </ul>
+      </div>
+      
+      <div className="border-l-4 border-blue-500 pl-4 bg-blue-50 p-4 rounded">
+        <h4 className="font-bold text-blue-900 mt-0">CLS — Cumulative Layout Shift</h4>
+        <p className="text-sm"><strong>What it measures:</strong> Visual stability. Unexpected layout shifts during page load.</p>
+        <p className="text-sm"><strong>Good:</strong> &lt; 0.1 | <strong>Needs Improvement:</strong> 0.1-0.25 | <strong>Poor:</strong> &gt; 0.25</p>
+        <p className="text-sm mb-0"><strong>How to improve:</strong></p>
+        <ul className="text-sm space-y-1">
+          <li>Set explicit width/height on images and videos</li>
+          <li>Reserve space for ads and embeds</li>
+          <li>Avoid inserting content above existing content</li>
+          <li>Use CSS aspect-ratio or size attributes</li>
+          <li>Preload fonts and use font-display: swap</li>
+        </ul>
+      </div>
+      
+      <div className="p-4 bg-gray-50 rounded-lg">
+        <h4 className="font-semibold text-gray-900 mt-0">Tools to Measure Core Web Vitals</h4>
+        <ul className="text-sm space-y-1 mb-0">
+          <li><strong>Google PageSpeed Insights:</strong> Lab + field data</li>
+          <li><strong>Chrome DevTools Lighthouse:</strong> Lab testing</li>
+          <li><strong>Search Console Core Web Vitals Report:</strong> Real user data</li>
+          <li><strong>Web Vitals Chrome Extension:</strong> Real-time measurements</li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+function MobileFriendlyChecker() {
+  const [checked, setChecked] = useState<Set<string>>(new Set());
+  const toggle = (id: string) => setChecked(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  const items = [
+    ['m1','Uses responsive design (viewport meta tag)'],['m2','Text is readable without zooming (16px min)'],['m3','Content fits within viewport width'],['m4','Touch targets are at least 48x48px'],['m5','Touch targets have adequate spacing (8px min)'],['m6','Links and buttons are easy to tap'],['m7','No horizontal scrolling required'],['m8','Avoids plugins (Flash, Java)'],['m9','Font sizes are legible on small screens'],['m10','Line height and spacing are comfortable'],['m11','Navigation is thumb-friendly'],['m12','Forms are easy to fill on mobile'],['m13','Pop-ups don\'t block content'],['m14','Images scale properly'],['m15','Page loads quickly on mobile networks']
+  ];
+  const pct = Math.round((checked.size / items.length) * 100);
+  return (
+    <div className="space-y-4">
+      <div className="text-center p-4 bg-teal-50 rounded-lg"><div className="text-4xl font-bold text-teal-600">{pct}%</div><div className="text-sm text-gray-600 mt-1">{checked.size}/{items.length} checks passed</div><div className="w-full bg-gray-200 rounded-full h-2 mt-3"><div className="bg-teal-600 h-2 rounded-full transition-all" style={{width:`${pct}%`}} /></div></div>
+      <div className="p-3 bg-blue-50 text-blue-700 rounded-lg text-sm">💡 Google uses mobile-first indexing. Your mobile site is what Google primarily uses for ranking.</div>
+      <div className="space-y-1">{items.map(([id, label]) => <label key={id} className="flex items-start gap-2 p-2 bg-gray-50 hover:bg-gray-100 rounded cursor-pointer text-sm"><input type="checkbox" checked={checked.has(id)} onChange={() => toggle(id)} className="mt-0.5" /><span className={checked.has(id) ? 'line-through text-gray-400' : ''}>{label}</span></label>)}</div>
+    </div>
+  );
+}
+
+// ============================================================================
+// CONTENT & KEYWORD TOOLS (31-40)
+// ============================================================================
+
+function BlogOutlineGenerator() {
+  const [topic, setTopic] = useState('');
+  const outline = topic ? [
+    { h: 'H1', text: topic },
+    { h: 'H2', text: `What is ${topic}?` },
+    { h: 'H3', text: 'Definition and key concepts' },
+    { h: 'H3', text: `Why ${topic} matters` },
+    { h: 'H2', text: `How to get started with ${topic}` },
+    { h: 'H3', text: 'Step 1: Research and planning' },
+    { h: 'H3', text: 'Step 2: Implementation' },
+    { h: 'H3', text: 'Step 3: Optimization' },
+    { h: 'H2', text: `Best practices for ${topic}` },
+    { h: 'H3', text: 'Common mistakes to avoid' },
+    { h: 'H3', text: 'Expert tips and tricks' },
+    { h: 'H2', text: `${topic} tools and resources` },
+    { h: 'H2', text: 'Conclusion' },
+  ] : [];
+  return (
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Topic</label><input value={topic} onChange={e => setTopic(e.target.value)} placeholder="e.g., Email Marketing Automation" className="input-field" /></div>
+      {outline.length > 0 && <><h4 className="font-semibold text-gray-900">Generated Outline:</h4><div className="space-y-1 p-4 bg-gray-50 rounded-lg">{outline.map((o, i) => <div key={i} className="flex gap-3 text-sm" style={{ paddingLeft: o.h === 'H3' ? '20px' : '0' }}><span className="text-purple-600 font-mono font-medium w-8">{o.h}</span><span className="text-gray-800">{o.text}</span></div>)}</div><CopyBtn text={outline.map(o => `${o.h}: ${o.text}`).join('\n')} /></>}
+    </div>
+  );
+}
+
+function SEOTitleGenerator() {
+  const [keyword, setKeyword] = useState('');
+  const titles = keyword ? [
+    `${keyword}: The Complete Guide for 2026`,
+    `10 Proven ${keyword} Strategies That Actually Work`,
+    `How to Master ${keyword} in 30 Days (Step-by-Step)`,
+    `${keyword} 101: Everything You Need to Know`,
+    `The Ultimate ${keyword} Checklist [Free Download]`,
+    `${keyword}: 7 Mistakes You're Probably Making`,
+    `Best ${keyword} Tools and Software (Compared)`,
+    `${keyword} Made Simple: A Beginner's Guide`,
+    `Why ${keyword} Matters (And How to Do It Right)`,
+    `${keyword} Tips from Industry Experts [2026]`
+  ] : [];
+  return (
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Target Keyword</label><input value={keyword} onChange={e => setKeyword(e.target.value)} placeholder="e.g., content marketing" className="input-field" /></div>
+      {titles.length > 0 && <><h4 className="font-semibold text-gray-900">10 Title Options:</h4><div className="space-y-2">{titles.map((t, i) => <div key={i} className="p-3 bg-gray-50 hover:bg-gray-100 rounded-lg flex items-start gap-2 cursor-pointer group" onClick={() => navigator.clipboard.writeText(t)}><span className="text-purple-600 font-bold">{i+1}.</span><span className="flex-1 text-gray-800">{t}</span><span className="text-xs text-gray-400 opacity-0 group-hover:opacity-100">📋</span></div>)}</div></>}
+    </div>
+  );
+}
+
+function MetaDescriptionWriter() {
+  const [summary, setSummary] = useState('');
+  const descriptions = summary ? [
+    `${summary.slice(0, 140)}. Learn more →`,
+    `Discover ${summary.toLowerCase()}. Expert tips & actionable advice.`,
+    `Everything you need to know about ${summary.toLowerCase()}. Free guide inside.`,
+    `${summary}. Click to read the full breakdown.`,
+    `Want to improve? ${summary}. Get started today.`
+  ] : [];
+  return (
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Page Summary</label><textarea value={summary} onChange={e => setSummary(e.target.value)} rows={3} placeholder="Briefly describe what your page is about..." className="input-field resize-none" /></div>
+      {descriptions.length > 0 && <><h4 className="font-semibold text-gray-900">5 Meta Description Options:</h4><div className="space-y-2">{descriptions.map((d, i) => <div key={i} className="p-3 bg-gray-50 rounded-lg"><div className="text-sm text-gray-800">{d}</div><div className="text-xs text-gray-400 mt-1">{d.length} characters</div></div>)}</div></>}
+    </div>
+  );
+}
+
+function ContentCalendar() {
+  const [month, setMonth] = useState(new Date().toISOString().slice(0, 7));
+  const [entries, setEntries] = useState<Record<string, string>>({});
+  const update = (day: string, text: string) => setEntries(e => ({ ...e, [day]: text }));
+  const daysInMonth = new Date(month + '-01').getMonth() === new Date(month + '-31').getMonth() ? 31 : new Date(month + '-01').getMonth() === 1 ? 28 : 30;
+  return (
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Month</label><input type="month" value={month} onChange={e => setMonth(e.target.value)} className="input-field" /></div>
+      <div className="grid grid-cols-7 gap-2">{Array.from({ length: daysInMonth }, (_, i) => { const day = String(i + 1).padStart(2, '0'); const key = `${month}-${day}`; return <div key={key} className="border rounded p-2 min-h-24"><div className="text-xs font-bold text-gray-500 mb-1">{day}</div><textarea value={entries[key] || ''} onChange={e => update(key, e.target.value)} placeholder="Topic..." className="w-full text-xs border-0 p-0 resize-none focus:outline-none" rows={2} /></div>; })}</div>
+    </div>
+  );
+}
+
+function KeywordClustering() {
+  const [input, setInput] = useState('');
+  const keywords = input.split('\n').filter(Boolean).map(k => k.trim().toLowerCase());
+  const groups: Record<string, string[]> = {};
+  keywords.forEach(kw => { const words = kw.split(/\s+/); const key = words.length > 1 ? words.slice(0, Math.min(2, words.length - 1)).join(' ') : kw; if (!groups[key]) groups[key] = []; groups[key].push(kw); });
+  return (
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Keywords (one per line)</label><textarea value={input} onChange={e => setInput(e.target.value)} rows={8} placeholder="seo tools free\nseo tools for beginners\nkeyword research tips\nkeyword research tools" className="input-field resize-none" /></div>
+      {Object.keys(groups).length > 0 && <><h4 className="font-semibold text-gray-900">{Object.keys(groups).length} Clusters Found:</h4><div className="space-y-3">{Object.entries(groups).sort((a,b) => b[1].length - a[1].length).map(([group, kws]) => <div key={group} className="p-3 bg-purple-50 rounded-lg border-l-4 border-purple-500"><div className="font-medium text-purple-900 text-sm mb-1">{group} ({kws.length} keywords)</div><div className="text-sm text-gray-700">{kws.join(', ')}</div></div>)}</div></>}
+    </div>
+  );
+}
+
+function SearchIntentClassifier() {
+  const [keywords, setKeywords] = useState('');
+  const classify = (kw: string): string => {
+    const k = kw.toLowerCase();
+    if (/buy|price|cheap|deal|discount|coupon|order|purchase|shop|for sale/.test(k)) return 'Transactional';
+    if (/best|top|review|comparison|vs|alternative|compare/.test(k)) return 'Commercial';
+    if (/login|\.com|\.org|website|official|youtube|facebook|brand name/.test(k)) return 'Navigational';
+    return 'Informational';
+  };
+  const colors: Record<string, string> = {
+    Transactional: 'bg-red-100 text-red-700 border-red-300',
+    Commercial: 'bg-yellow-100 text-yellow-700 border-yellow-300',
+    Navigational: 'bg-blue-100 text-blue-700 border-blue-300',
+    Informational: 'bg-green-100 text-green-700 border-green-300'
+  };
+  const results = keywords.split('\n').filter(Boolean).map(k => ({ keyword: k.trim(), intent: classify(k) }));
+  return (
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Keywords (one per line)</label><textarea value={keywords} onChange={e => setKeywords(e.target.value)} rows={6} placeholder="how to improve SEO\nbuy SEO tools\nbest SEO software\ngoogle.com" className="input-field resize-none" /></div>
+      {results.length > 0 && <div className="space-y-2">{results.map((r, i) => <div key={i} className="flex justify-between items-center p-2 bg-gray-50 rounded"><span className="text-sm">{r.keyword}</span><span className={`text-xs px-2 py-1 rounded-full font-medium border ${colors[r.intent]}`}>{r.intent}</span></div>)}</div>}
+    </div>
+  );
+}
+
+function CompetitorKeywordGap() {
+  const [your, setYour] = useState('');
+  const [competitor, setCompetitor] = useState('');
+  const yourKw = new Set(your.toLowerCase().split('\n').filter(Boolean).map(k => k.trim()));
+  const compKw = competitor.toLowerCase().split('\n').filter(Boolean).map(k => k.trim());
+  const gaps = compKw.filter(k => !yourKw.has(k));
+  return (
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Your Keywords</label><textarea value={your} onChange={e => setYour(e.target.value)} rows={5} placeholder="keyword 1\nkeyword 2" className="input-field resize-none" /></div>
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Competitor Keywords</label><textarea value={competitor} onChange={e => setCompetitor(e.target.value)} rows={5} placeholder="keyword 1\nkeyword 3" className="input-field resize-none" /></div>
+      {gaps.length > 0 && <><h4 className="font-semibold text-gray-900">Keyword Gaps ({gaps.length} keywords your competitor ranks for that you don't):</h4><div className="space-y-1">{gaps.map((k, i) => <div key={i} className="p-2 bg-yellow-50 text-yellow-800 rounded text-sm border-l-2 border-yellow-500">{k}</div>)}</div><CopyBtn text={gaps.join('\n')} /></>}
+    </div>
+  );
+}
+
+function LongTailKeywordGenerator() {
+  const [seed, setSeed] = useState('');
+  const modifiers = {
+    questions: ['how to','what is','why','when','where','can you','should you'],
+    comparisons: ['vs','or','compared to','alternative to','vs','like'],
+    intent: ['buy','for sale','near me','online','free','cheap','best','review'],
+    qualifiers: ['for beginners','for small business','tips','guide','examples','2026','checklist']
+  };
+  const results = seed ? Object.values(modifiers).flat().flatMap(m => [`${m} ${seed}`, `${seed} ${m}`]).filter((v, i, a) => a.indexOf(v) === i) : [];
+  return (
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Seed Keyword</label><input value={seed} onChange={e => setSeed(e.target.value)} placeholder="e.g., email marketing" className="input-field" /></div>
+      {results.length > 0 && <><div className="flex justify-between items-center"><h4 className="font-semibold text-gray-900">{results.length} Long-Tail Variations</h4><CopyBtn text={results.join('\n')} /></div><div className="max-h-64 overflow-y-auto space-y-1">{results.slice(0, 50).map((r, i) => <div key={i} className="text-sm p-2 bg-gray-50 rounded">{r}</div>)}</div></>}
+    </div>
+  );
+}
+
+function PeopleAlsoAskGenerator() {
+  const [topic, setTopic] = useState('');
+  const questions = topic ? [
+    `What is ${topic}?`,
+    `How does ${topic} work?`,
+    `Why is ${topic} important?`,
+    `What are the benefits of ${topic}?`,
+    `How much does ${topic} cost?`,
+    `Is ${topic} worth it?`,
+    `What are the best ${topic} tools?`,
+    `How to get started with ${topic}?`,
+    `What are ${topic} best practices?`,
+    `How long does ${topic} take?`,
+    `What is the difference between ${topic} and [alternative]?`,
+    `Can I do ${topic} myself?`,
+    `What are common ${topic} mistakes?`,
+    `How to measure ${topic} success?`,
+    `What is the future of ${topic}?`
+  ] : [];
+  return (
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Topic</label><input value={topic} onChange={e => setTopic(e.target.value)} placeholder="e.g., link building" className="input-field" /></div>
+      {questions.length > 0 && <><h4 className="font-semibold text-gray-900">People Also Ask Questions:</h4><ul className="space-y-2">{questions.map((q, i) => <li key={i} className="p-3 bg-gray-50 rounded-lg text-sm border-l-2 border-purple-500">{q}</li>)}</ul><CopyBtn text={questions.join('\n')} /></>}
+    </div>
+  );
+}
+
+function ContentRefreshChecker() {
+  const [published, setPublished] = useState('');
+  const [updated, setUpdated] = useState('');
+  const daysSince = (date: string) => date ? Math.floor((Date.now() - new Date(date).getTime()) / 86400000) : 0;
+  const pubDays = daysSince(published);
+  const updDays = updated ? daysSince(updated) : pubDays;
+  const shouldRefresh = updDays > 180;
+  return (
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Originally Published</label><input type="date" value={published} onChange={e => setPublished(e.target.value)} className="input-field" /></div>
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Last Updated (optional)</label><input type="date" value={updated} onChange={e => setUpdated(e.target.value)} className="input-field" /></div>
+      {published && <><div className="grid grid-cols-2 gap-4"><StatBox label="Days Since Published" value={String(pubDays)} /><StatBox label="Days Since Updated" value={String(updDays)} color={shouldRefresh ? 'purple' : 'teal'} /></div><div className={`p-4 rounded-lg ${shouldRefresh ? 'bg-yellow-50 border-l-4 border-yellow-500' : 'bg-green-50 border-l-4 border-green-500'}`}><div className={`font-semibold ${shouldRefresh ? 'text-yellow-800' : 'text-green-800'}`}>{shouldRefresh ? '⚠ Time to refresh!' : '✓ Content is relatively fresh'}</div><div className={`text-sm mt-1 ${shouldRefresh ? 'text-yellow-700' : 'text-green-700'}`}>{shouldRefresh ? 'Content older than 6 months should be reviewed and updated with fresh data, examples, and insights.' : 'Consider updating every 6-12 months to maintain relevance.'}</div></div></>}
+    </div>
+  );
+}
+
+// ============================================================================
+// LINK BUILDING & ANALYTICS TOOLS (41-50)
+// ============================================================================
+
+function BacklinkOpportunityFinder() {
+  const [niche, setNiche] = useState('');
+  const strategies = [
+    'Guest posting on industry blogs',
+    'Resource page link building',
+    'Broken link building',
+    'Unlinked brand mentions',
+    'Competitor backlink analysis',
+    'HARO (Help a Reporter Out)',
+    'Industry roundups and expert quotes',
+    'Create link-worthy infographics',
+    'Original research and data studies',
+    'Tool or calculator creation',
+    'Directory submissions (niche-specific)',
+    'Podcast guest appearances',
+    'Webinar hosting',
+    'Community forum participation',
+    'Strategic partnerships'
+  ];
+  return (
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Your Niche</label><input value={niche} onChange={e => setNiche(e.target.value)} placeholder="e.g., SaaS, ecommerce, digital marketing" className="input-field" /></div>
+      <h4 className="font-semibold text-gray-900">Link Building Strategies:</h4>
+      <ul className="space-y-2">{strategies.map((s, i) => <li key={i} className="p-3 bg-gray-50 rounded-lg text-sm flex items-start gap-2"><span className="text-teal-600 font-bold">{i+1}.</span><span>{s}</span></li>)}</ul>
+    </div>
+  );
+}
+
+function GuestPostPitchGenerator() {
+  const [site, setSite] = useState('');
+  const [topic, setTopic] = useState('');
+  const [name, setName] = useState('');
+  const template = `Subject: Guest Post Idea: ${topic}\n\nHi [Editor's Name],\n\nI'm ${name}, and I've been following ${site} for a while. I love your content on [specific topic area].\n\nI'd like to contribute a guest post titled "${topic}". This article would cover:\n\n• [Key point 1]\n• [Key point 2]\n• [Key point 3]\n\nI've written for [other publications] and have expertise in [your niche]. Here are some writing samples: [links]\n\nI can deliver a 1,500-2,000 word post within [timeframe]. The content will be 100% original and tailored to your audience.\n\nWould this be a good fit for ${site}?\n\nBest regards,\n${name}`;
+  return (
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Target Site</label><input value={site} onChange={e => setSite(e.target.value)} placeholder="Example Blog" className="input-field" /></div>
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Article Topic</label><input value={topic} onChange={e => setTopic(e.target.value)} placeholder="10 SEO Myths Debunked" className="input-field" /></div>
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Your Name</label><input value={name} onChange={e => setName(e.target.value)} placeholder="John Doe" className="input-field" /></div>
+      {site && topic && name && <CodeOutput label="Email Template" code={template} />}
+    </div>
+  );
+}
+
+function BrokenLinkGuide() {
+  return (
+    <div className="prose prose-sm max-w-none space-y-4">
+      <div className="p-4 bg-gradient-to-r from-teal-50 to-purple-50 rounded-lg">
+        <h3 className="text-lg font-bold text-gray-900 mt-0">Broken Link Building — Step-by-Step Guide</h3>
+        <p className="text-sm text-gray-600 mb-0">Find broken links on relevant sites, create replacement content, and earn high-quality backlinks.</p>
+      </div>
+      
+      <div className="border-l-4 border-teal-500 pl-4 bg-teal-50 p-3 rounded">
+        <h4 className="font-bold text-teal-900 mt-0">Step 1: Find Broken Links</h4>
+        <p className="text-sm mb-0">Use tools like Ahrefs, Screaming Frog, or Check My Links (Chrome extension) to find 404 pages on authority sites in your niche.</p>
+      </div>
+      
+      <div className="border-l-4 border-purple-500 pl-4 bg-purple-50 p-3 rounded">
+        <h4 className="font-bold text-purple-900 mt-0">Step 2: Analyze the Opportunity</h4>
+        <ul className="text-sm space-y-1 mb-0">
+          <li>Check how many sites link to the dead page (use Ahrefs or Moz)</li>
+          <li>Evaluate domain authority of linking sites</li>
+          <li>Determine if the topic fits your content strategy</li>
+        </ul>
+      </div>
+      
+      <div className="border-l-4 border-blue-500 pl-4 bg-blue-50 p-3 rounded">
+        <h4 className="font-bold text-blue-900 mt-0">Step 3: Create Better Content</h4>
+        <p className="text-sm mb-0">Write a comprehensive replacement resource that's better than the original. Make it the best content available on that topic.</p>
+      </div>
+      
+      <div className="border-l-4 border-yellow-500 pl-4 bg-yellow-50 p-3 rounded">
+        <h4 className="font-bold text-yellow-900 mt-0">Step 4: Outreach</h4>
+        <p className="text-sm"><strong>Email template:</strong></p>
+        <p className="text-xs font-mono bg-white p-2 rounded mb-0">Hi [Name],<br/><br/>I noticed you link to [broken URL] on [page URL]. Unfortunately, that page is no longer available.<br/><br/>I recently published a similar resource: [your URL]. It might be a good replacement.<br/><br/>Either way, thought you'd want to know about the broken link!<br/><br/>Best,<br/>[Your Name]</p>
+      </div>
+      
+      <div className="p-3 bg-gray-50 rounded">
+        <h4 className="font-semibold text-gray-900 mt-0">Pro Tips</h4>
+        <ul className="text-sm space-y-1 mb-0">
+          <li>Personalize each outreach email</li>
+          <li>Don't be pushy—offer value first</li>
+          <li>Follow up once after 5-7 days</li>
+          <li>Target resource pages and link roundups</li>
+        </ul>
+      </div>
+    </div>
+  );
+}
+
+function LinkBuildingROICalculator() {
+  const [hours, setHours] = useState('10');
+  const [hourlyRate, setHourlyRate] = useState('50');
+  const [linksGained, setLinksGained] = useState('5');
+  const [avgDA, setAvgDA] = useState('40');
+  const cost = +hours * +hourlyRate;
+  const estValue = +linksGained * (+avgDA * 2); // Rough estimate: DA40 link = $80 value
+  const roi = cost > 0 ? (((estValue - cost) / cost) * 100).toFixed(0) : '0';
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div><label className="block text-sm font-medium text-gray-700 mb-1">Hours Spent</label><input type="number" value={hours} onChange={e => setHours(e.target.value)} className="input-field" /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1">Hourly Rate ($)</label><input type="number" value={hourlyRate} onChange={e => setHourlyRate(e.target.value)} className="input-field" /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1">Links Gained</label><input type="number" value={linksGained} onChange={e => setLinksGained(e.target.value)} className="input-field" /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1">Avg Domain Authority</label><input type="number" value={avgDA} onChange={e => setAvgDA(e.target.value)} className="input-field" /></div>
+      </div>
+      <div className="grid grid-cols-3 gap-4">
+        <StatBox label="Total Cost" value={`$${cost}`} />
+        <StatBox label="Est. Value" value={`$${estValue}`} color="teal" />
+        <StatBox label="ROI" value={`${roi}%`} color={+roi > 0 ? 'teal' : 'purple'} />
+      </div>
+      <div className="text-xs text-gray-400 p-2 bg-gray-50 rounded">Note: Estimated value based on average market rates for backlinks. Actual value depends on relevance, traffic, and link quality.</div>
+    </div>
+  );
+}
+
+function DomainAuthorityEstimator() {
+  const [backlinks, setBacklinks] = useState('100');
+  const [domains, setDomains] = useState('50');
+  const [age, setAge] = useState('5');
+  const estDA = Math.min(100, Math.round(
+    (Math.log(+backlinks + 1) * 5) +
+    (Math.log(+domains + 1) * 8) +
+    (+age * 2)
+  ));
+  const category = estDA < 20 ? 'Low' : estDA < 40 ? 'Below Average' : estDA < 60 ? 'Average' : estDA < 80 ? 'Good' : 'Excellent';
+  return (
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Total Backlinks</label><input type="number" value={backlinks} onChange={e => setBacklinks(e.target.value)} className="input-field" /></div>
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Linking Root Domains</label><input type="number" value={domains} onChange={e => setDomains(e.target.value)} className="input-field" /></div>
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Domain Age (years)</label><input type="number" value={age} onChange={e => setAge(e.target.value)} className="input-field" /></div>
+      <div className="p-6 bg-gradient-to-r from-purple-50 to-teal-50 rounded-lg text-center">
+        <div className="text-5xl font-black text-purple-600">{estDA}</div>
+        <div className="text-sm text-gray-600 mt-2">Estimated Domain Authority</div>
+        <div className="text-xs text-gray-500 mt-1">{category}</div>
+      </div>
+      <div className="text-xs text-gray-400 p-2 bg-gray-50 rounded">This is a rough estimate. Use Moz, Ahrefs DR, or Semrush AS for accurate metrics.</div>
     </div>
   );
 }
@@ -493,689 +1025,172 @@ function UTMBuilder() {
     <div className="space-y-4">
       <div><label className="block text-sm font-medium text-gray-700 mb-1">Website URL *</label><input value={base} onChange={e => setBase(e.target.value)} className="input-field" /></div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">Source *</label><input value={source} onChange={e => setSource(e.target.value)} placeholder="google" className="input-field" /></div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">Medium *</label><input value={medium} onChange={e => setMedium(e.target.value)} placeholder="cpc" className="input-field" /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1">Source *</label><input value={source} onChange={e => setSource(e.target.value)} placeholder="google, newsletter" className="input-field" /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1">Medium *</label><input value={medium} onChange={e => setMedium(e.target.value)} placeholder="cpc, email, social" className="input-field" /></div>
         <div><label className="block text-sm font-medium text-gray-700 mb-1">Campaign *</label><input value={campaign} onChange={e => setCampaign(e.target.value)} placeholder="spring_sale" className="input-field" /></div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">Term</label><input value={term} onChange={e => setTerm(e.target.value)} placeholder="keyword" className="input-field" /></div>
-        <div className="md:col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">Content</label><input value={content} onChange={e => setContent(e.target.value)} placeholder="ad_variant" className="input-field" /></div>
+        <div><label className="block text-sm font-medium text-gray-700 mb-1">Term (optional)</label><input value={term} onChange={e => setTerm(e.target.value)} placeholder="keyword" className="input-field" /></div>
+        <div className="md:col-span-2"><label className="block text-sm font-medium text-gray-700 mb-1">Content (optional)</label><input value={content} onChange={e => setContent(e.target.value)} placeholder="banner_ad_1" className="input-field" /></div>
       </div>
-      <div className="p-4 bg-gray-50 rounded-lg font-mono text-sm break-all">{url}</div>
+      <div className="p-4 bg-gray-50 rounded-lg"><span className="text-xs text-gray-500">Generated URL:</span><div className="font-mono text-sm break-all mt-1 text-gray-900">{url}</div></div>
       <CopyBtn text={url} />
     </div>
   );
 }
 
-function ViewportTester() {
-  const [url, setUrl] = useState('https://seorely.netlify.app');
-  const [size, setSize] = useState({ w: 375, h: 667, label: 'iPhone SE' });
-  const presets = [
-    { w: 375, h: 667, label: 'iPhone SE' },
-    { w: 390, h: 844, label: 'iPhone 14' },
-    { w: 768, h: 1024, label: 'iPad' },
-    { w: 1024, h: 768, label: 'iPad Landscape' },
-    { w: 1440, h: 900, label: 'Desktop' },
-  ];
+function GA4EventBuilder() {
+  const [eventName, setEventName] = useState('purchase');
+  const [params, setParams] = useState('currency: USD\nvalue: 99.99\ntransaction_id: T12345');
+  const paramsObj = params.split('\n').filter(Boolean).reduce((acc, line) => {
+    const [key, val] = line.split(':').map(s => s.trim());
+    if (key && val) acc[key] = isNaN(+val) ? val : +val;
+    return acc;
+  }, {} as Record<string, any>);
+  const code = `gtag('event', '${eventName}', ${JSON.stringify(paramsObj, null, 2)});`;
   return (
-    <div className="space-y-6">
-      <div><label className="block text-sm font-medium text-gray-700 mb-1">URL to Preview</label><input value={url} onChange={e => setUrl(e.target.value)} className="input-field" /></div>
-      <div className="flex flex-wrap gap-2">
-        {presets.map(p => (
-          <button key={p.label} onClick={() => setSize(p)} className={`px-3 py-1.5 rounded-lg text-sm ${size.label === p.label ? 'bg-purple-600 text-white' : 'bg-gray-100'}`}>{p.label} ({p.w}×{p.h})</button>
-        ))}
-      </div>
-      <div className="flex justify-center">
-        <div className="border-2 border-gray-300 rounded-lg overflow-hidden bg-white" style={{ width: Math.min(size.w, 800), height: Math.min(size.h, 600) }}>
-          <iframe src={url} title="Viewport preview" style={{ width: size.w, height: size.h, transform: `scale(${Math.min(800 / size.w, 600 / size.h, 1)})`, transformOrigin: 'top left' }} sandbox="allow-scripts allow-same-origin" />
-        </div>
-      </div>
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Event Name</label><input value={eventName} onChange={e => setEventName(e.target.value)} placeholder="purchase, sign_up, download" className="input-field" /></div>
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Parameters (key: value, one per line)</label><textarea value={params} onChange={e => setParams(e.target.value)} rows={5} className="input-field resize-none font-mono text-sm" /></div>
+      <CodeOutput label="GA4 gtag.js Code" code={code} />
     </div>
   );
 }
 
-function TextDiff() {
-  const [a, setA] = useState('');
-  const [b, setB] = useState('');
-  const diff = () => {
-    const linesA = a.split('\n');
-    const linesB = b.split('\n');
-    const max = Math.max(linesA.length, linesB.length);
-    return Array.from({ length: max }, (_, i) => {
-      const la = linesA[i] ?? '';
-      const lb = linesB[i] ?? '';
-      if (la === lb) return { type: 'same', text: la };
-      if (!la) return { type: 'add', text: lb };
-      if (!lb) return { type: 'remove', text: la };
-      return { type: 'change', old: la, new: lb };
-    });
-  };
+function ABTestCalculator() {
+  const [visitors, setVisitors] = useState('1000');
+  const [baseConv, setBaseConv] = useState('2');
+  const [minDetect, setMinDetect] = useState('20');
+  const conv = +baseConv / 100;
+  const lift = +minDetect / 100;
+  const sampleSize = Math.ceil((16 * conv * (1 - conv)) / ((lift * conv) ** 2));
+  const daysNeeded = Math.ceil(sampleSize / +visitors);
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">Original</label><textarea value={a} onChange={e => setA(e.target.value)} rows={8} className="input-field resize-none font-mono text-sm" /></div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">Modified</label><textarea value={b} onChange={e => setB(e.target.value)} rows={8} className="input-field resize-none font-mono text-sm" /></div>
-      </div>
-      {(a || b) && <div className="space-y-1 font-mono text-sm">
-        {diff().map((d, i) => (
-          <div key={i} className={`px-2 py-0.5 rounded ${d.type === 'same' ? 'text-gray-600' : d.type === 'add' ? 'bg-green-50 text-green-700' : d.type === 'remove' ? 'bg-red-50 text-red-700' : 'bg-yellow-50 text-yellow-700'}`}>
-            {d.type === 'change' ? <><div className="line-through text-red-500">{(d as any).old}</div><div className="text-green-600">{(d as any).new}</div></> : <>{d.type === 'add' ? '+ ' : d.type === 'remove' ? '- ' : '  '}{d.text}</>}
-          </div>
-        ))}
-      </div>}
-    </div>
-  );
-}
-
-function JSONFormatter() {
-  const [input, setInput] = useState('');
-  const [error, setError] = useState('');
-  const format = () => {
-    try { const o = JSON.parse(input); setError(''); return JSON.stringify(o, null, 2); } catch (e: any) { setError(e.message); return ''; }
-  };
-  const output = input ? format() : '';
-  return (
-    <div className="space-y-6">
-      <div><label className="block text-sm font-medium text-gray-700 mb-1">JSON Input</label><textarea value={input} onChange={e => setInput(e.target.value)} rows={8} placeholder='{"key": "value"}' className="input-field resize-none font-mono text-sm" /></div>
-      {error && <div className="text-red-600 text-sm">❌ {error}</div>}
-      {output && !error && <><div className="text-green-600 text-sm font-medium">✓ Valid JSON</div><CodeOutput label="Formatted JSON" code={output} /></>}
-    </div>
-  );
-}
-
-function ColorContrast() {
-  const [fg, setFg] = useState('#333333');
-  const [bg, setBg] = useState('#ffffff');
-  const hexToRgb = (hex: string) => {
-    const h = hex.replace('#', '');
-    return [parseInt(h.substring(0, 2), 16), parseInt(h.substring(2, 4), 16), parseInt(h.substring(4, 6), 16)];
-  };
-  const luminance = (r: number, g: number, b: number) => {
-    const [rs, gs, bs] = [r, g, b].map(c => { c = c / 255; return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); });
-    return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
-  };
-  const [r1, g1, b1] = hexToRgb(fg);
-  const [r2, g2, b2] = hexToRgb(bg);
-  const l1 = luminance(r1, g1, b1);
-  const l2 = luminance(r2, g2, b2);
-  const ratio = ((Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05)).toFixed(2);
-  const passAA = +ratio >= 4.5;
-  const passAAA = +ratio >= 7;
-  const passAALarge = +ratio >= 3;
-  return (
-    <div className="space-y-6">
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Daily Visitors per Variation</label><input type="number" value={visitors} onChange={e => setVisitors(e.target.value)} className="input-field" /></div>
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Baseline Conversion Rate (%)</label><input type="number" value={baseConv} onChange={e => setBaseConv(e.target.value)} className="input-field" /></div>
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Minimum Detectable Effect (%)</label><input type="number" value={minDetect} onChange={e => setMinDetect(e.target.value)} placeholder="20" className="input-field" /></div>
       <div className="grid grid-cols-2 gap-4">
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">Text Color</label><div className="flex gap-2"><input type="color" value={fg} onChange={e => setFg(e.target.value)} className="w-12 h-10 rounded cursor-pointer" /><input value={fg} onChange={e => setFg(e.target.value)} className="input-field flex-1 font-mono" /></div></div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">Background Color</label><div className="flex gap-2"><input type="color" value={bg} onChange={e => setBg(e.target.value)} className="w-12 h-10 rounded cursor-pointer" /><input value={bg} onChange={e => setBg(e.target.value)} className="input-field flex-1 font-mono" /></div></div>
+        <StatBox label="Sample Size Needed" value={String(sampleSize)} color="teal" />
+        <StatBox label="Days to Run Test" value={String(daysNeeded)} color="teal" />
       </div>
-      <div className="p-8 rounded-lg text-center text-2xl font-bold" style={{ color: fg, backgroundColor: bg }}>
-        Sample Text Preview
+      <div className="text-xs text-gray-400 p-2 bg-gray-50 rounded">Based on 95% confidence and 80% statistical power. Run your test for at least this many days or 2 full business cycles.</div>
+    </div>
+  );
+}
+
+function CTRCalculator() {
+  const [impressions, setImpressions] = useState('10000');
+  const [clicks, setClicks] = useState('250');
+  const ctr = +impressions > 0 ? ((+clicks / +impressions) * 100).toFixed(2) : '0.00';
+  const benchmark = +ctr > 3 ? 'Excellent' : +ctr > 1.5 ? 'Good' : +ctr > 0.5 ? 'Average' : 'Needs Improvement';
+  return (
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Impressions</label><input type="number" value={impressions} onChange={e => setImpressions(e.target.value)} className="input-field" /></div>
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Clicks</label><input type="number" value={clicks} onChange={e => setClicks(e.target.value)} className="input-field" /></div>
+      <div className="p-6 bg-gradient-to-r from-purple-50 to-teal-50 rounded-lg text-center">
+        <div className="text-5xl font-black text-purple-600">{ctr}%</div>
+        <div className="text-sm text-gray-600 mt-2">Click-Through Rate</div>
+        <div className="text-xs text-gray-500 mt-1">{benchmark}</div>
       </div>
-      <div className="text-center text-3xl font-black text-purple-600">{ratio}:1</div>
-      <div className="grid grid-cols-3 gap-4 text-center text-sm">
-        <div className={`p-3 rounded-lg ${passAA ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>{passAA ? '✓' : '✗'} AA Normal</div>
-        <div className={`p-3 rounded-lg ${passAALarge ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>{passAALarge ? '✓' : '✗'} AA Large</div>
-        <div className={`p-3 rounded-lg ${passAAA ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>{passAAA ? '✓' : '✗'} AAA Normal</div>
-      </div>
-    </div>
-  );
-}
-
-// Shared components
-function StatBox({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="p-4 bg-purple-50 rounded-lg text-center">
-      <div className="text-2xl font-bold text-purple-600">{value}</div>
-      <div className="text-xs text-gray-500">{label}</div>
-    </div>
-  );
-}
-
-function CopyBtn({ text }: { text: string }) {
-  const [copied, setCopied] = useState(false);
-  return (
-    <button onClick={() => { navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000); }} className="text-sm text-purple-600 hover:text-purple-700 font-medium">
-      {copied ? '✓ Copied!' : 'Copy to clipboard'}
-    </button>
-  );
-}
-
-function CodeOutput({ label, code }: { label: string; code: string }) {
-  return (
-    <div>
-      <h4 className="text-sm font-medium text-gray-700 mb-2">{label}</h4>
-      <div className="bg-gray-900 rounded-lg p-4">
-        <pre className="text-sm text-gray-300 whitespace-pre-wrap font-mono max-h-60 overflow-y-auto">{code}</pre>
-      </div>
-      <CopyBtn text={code} />
-    </div>
-  );
-}
-
-function MetaLengthChecker() {
-  const [title, setTitle] = useState('');
-  const [desc, setDesc] = useState('');
-  const titleOk = title.length > 0 && title.length <= 60;
-  const descOk = desc.length >= 120 && desc.length <= 155;
-  return (
-    <div className="space-y-6">
-      <div><label className="block text-sm font-medium text-gray-700 mb-1">Title Tag</label><input value={title} onChange={e => setTitle(e.target.value)} placeholder="Your page title..." className="input-field" /><div className="flex justify-between mt-1"><span className={`text-xs ${title.length > 60 ? 'text-red-500' : 'text-gray-400'}`}>{title.length}/60</span>{titleOk && <span className="text-xs text-green-500">✓ Good</span>}</div></div>
-      <div><label className="block text-sm font-medium text-gray-700 mb-1">Meta Description</label><textarea value={desc} onChange={e => setDesc(e.target.value)} rows={3} placeholder="Your meta description..." className="input-field resize-none" /><div className="flex justify-between mt-1"><span className={`text-xs ${desc.length > 155 ? 'text-red-500' : 'text-gray-400'}`}>{desc.length}/155</span>{descOk && <span className="text-xs text-green-500">✓ Perfect</span>}</div></div>
-      {(title || desc) && <div className="grid grid-cols-2 gap-4"><StatBox label="Title Pixels (est.)" value={`${Math.round(title.length * 8.5)}px`} /><StatBox label="Desc Pixels (est.)" value={`${Math.round(desc.length * 5.5)}px`} /></div>}
-    </div>
-  );
-}
-
-function KeywordExtractor() {
-  const [text, setText] = useState('');
-  const extract = () => {
-    const words = text.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(w => w.length > 3);
-    const stopWords = new Set(['that','this','with','from','your','have','more','will','been','they','were','than','each','make','like','just','over','such','also','into','after','only','other','which','their','about','would','these','some','them','could','what','there','when','very','much','most','even','then','does','being','made','well','back','still','many','those']);
-    const freq: Record<string, number> = {};
-    words.filter(w => !stopWords.has(w)).forEach(w => { freq[w] = (freq[w] || 0) + 1; });
-    return Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 20);
-  };
-  const results = text ? extract() : [];
-  return (
-    <div className="space-y-6">
-      <textarea value={text} onChange={e => setText(e.target.value)} rows={8} placeholder="Paste your content here..." className="input-field resize-none" />
-      {results.length > 0 && <div className="space-y-2">{results.map(([w, c]) => <div key={w} className="flex items-center gap-3"><div className="flex-1 bg-gray-100 rounded-full h-6 relative"><div className="bg-purple-500 h-6 rounded-full" style={{ width: `${(c / results[0][1]) * 100}%` }} /><span className="absolute inset-0 flex items-center px-3 text-xs font-medium">{w}</span></div><span className="text-sm text-gray-500 w-8 text-right">{c}</span></div>)}</div>}
-    </div>
-  );
-}
-
-function AltTextGenerator() {
-  const [subject, setSubject] = useState('');
-  const [context, setContext] = useState('');
-  const [action, setAction] = useState('');
-  const generate = () => {
-    if (!subject) return '';
-    let alt = subject;
-    if (action) alt = `${subject} ${action}`;
-    if (context) alt += ` — ${context}`;
-    return alt;
-  };
-  return (
-    <div className="space-y-6">
-      <div><label className="block text-sm font-medium text-gray-700 mb-1">Main Subject *</label><input value={subject} onChange={e => setSubject(e.target.value)} placeholder="e.g., Golden retriever puppy" className="input-field" /></div>
-      <div><label className="block text-sm font-medium text-gray-700 mb-1">Action / State</label><input value={action} onChange={e => setAction(e.target.value)} placeholder="e.g., running on a beach" className="input-field" /></div>
-      <div><label className="block text-sm font-medium text-gray-700 mb-1">Context / Purpose</label><input value={context} onChange={e => setContext(e.target.value)} placeholder="e.g., hero image for pet adoption page" className="input-field" /></div>
-      {subject && <><div className="p-4 bg-gray-50 rounded-lg"><span className="text-sm font-medium text-gray-500">Generated alt text:</span><p className="text-gray-900 mt-1">"{generate()}"</p></div><div className="text-xs text-gray-400">{generate().length} characters (aim for under 125)</div><CodeOutput label="HTML" code={`<img src="image.jpg" alt="${generate()}" />`} /></>}
-    </div>
-  );
-}
-
-function RedirectMapper() {
-  const [input, setInput] = useState('/old-page → /new-page\n/old-page-2 → /new-page → /final-page');
-  const chains = input.split('\n').filter(Boolean).map(line => {
-    const parts = line.split(/\s*[→>]+\s*/).filter(Boolean);
-    return { parts, hops: parts.length - 1, isChain: parts.length > 2 };
-  });
-  return (
-    <div className="space-y-6">
-      <div><label className="block text-sm font-medium text-gray-700 mb-1">Redirect paths (use → to separate, one chain per line)</label><textarea value={input} onChange={e => setInput(e.target.value)} rows={6} className="input-field resize-none font-mono text-sm" /></div>
-      <div className="space-y-3">{chains.map((c, i) => (
-        <div key={i} className={`p-3 rounded-lg border ${c.isChain ? 'border-yellow-300 bg-yellow-50' : 'border-green-300 bg-green-50'}`}>
-          <div className="flex items-center gap-2 text-sm">{c.parts.map((p, j) => <span key={j} className="flex items-center gap-2"><code className="bg-white px-2 py-0.5 rounded">{p}</code>{j < c.parts.length - 1 && <span className="text-gray-400">→</span>}</span>)}</div>
-          <div className={`text-xs mt-1 ${c.isChain ? 'text-yellow-700' : 'text-green-700'}`}>{c.hops} hop{c.hops > 1 ? 's' : ''} {c.isChain ? '⚠ Consider collapsing this chain' : '✓ Direct redirect'}</div>
-        </div>
-      ))}</div>
-    </div>
-  );
-}
-
-function HTMLMinifier() {
-  const [input, setInput] = useState('');
-  const minify = (html: string) => html.replace(/<!--[\s\S]*?-->/g, '').replace(/>\s+</g, '><').replace(/\s{2,}/g, ' ').trim();
-  const output = input ? minify(input) : '';
-  const saved = input.length > 0 ? Math.round((1 - output.length / input.length) * 100) : 0;
-  return (
-    <div className="space-y-6">
-      <textarea value={input} onChange={e => setInput(e.target.value)} rows={8} placeholder="Paste your HTML..." className="input-field resize-none font-mono text-sm" />
-      {input && <div className="grid grid-cols-3 gap-4"><StatBox label="Original" value={`${input.length}`} /><StatBox label="Minified" value={`${output.length}`} /><StatBox label="Saved" value={`${saved}%`} /></div>}
-      {output && <CodeOutput label="Minified HTML" code={output} />}
-    </div>
-  );
-}
-
-function CSSMinifier() {
-  const [input, setInput] = useState('');
-  const minify = (css: string) => css.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s*([{}:;,])\s*/g, '$1').replace(/;\}/g, '}').replace(/\s{2,}/g, ' ').trim();
-  const output = input ? minify(input) : '';
-  const saved = input.length > 0 ? Math.round((1 - output.length / input.length) * 100) : 0;
-  return (
-    <div className="space-y-6">
-      <textarea value={input} onChange={e => setInput(e.target.value)} rows={8} placeholder="Paste your CSS..." className="input-field resize-none font-mono text-sm" />
-      {input && <div className="grid grid-cols-3 gap-4"><StatBox label="Original" value={`${input.length}`} /><StatBox label="Minified" value={`${output.length}`} /><StatBox label="Saved" value={`${saved}%`} /></div>}
-      {output && <CodeOutput label="Minified CSS" code={output} />}
-    </div>
-  );
-}
-
-function JSMinifier() {
-  const [input, setInput] = useState('');
-  const minify = (js: string) => js.replace(/\/\/.*$/gm, '').replace(/\/\*[\s\S]*?\*\//g, '').replace(/\s{2,}/g, ' ').replace(/\s*([{}();=,+\-*/<>!&|])\s*/g, '$1').trim();
-  const output = input ? minify(input) : '';
-  const saved = input.length > 0 ? Math.round((1 - output.length / input.length) * 100) : 0;
-  return (
-    <div className="space-y-6">
-      <textarea value={input} onChange={e => setInput(e.target.value)} rows={8} placeholder="Paste your JavaScript..." className="input-field resize-none font-mono text-sm" />
-      {input && <div className="grid grid-cols-3 gap-4"><StatBox label="Original" value={`${input.length}`} /><StatBox label="Minified" value={`${output.length}`} /><StatBox label="Saved" value={`${saved}%`} /></div>}
-      {output && <CodeOutput label="Minified JS" code={output} />}
-    </div>
-  );
-}
-
-function TwitterCardPreview() {
-  const [title, setTitle] = useState('');
-  const [desc, setDesc] = useState('');
-  const [img, setImg] = useState('');
-  const [site, setSite] = useState('');
-  return (
-    <div className="space-y-6">
-      <div><label className="block text-sm font-medium text-gray-700 mb-1">Title</label><input value={title} onChange={e => setTitle(e.target.value)} placeholder="Page title" className="input-field" /></div>
-      <div><label className="block text-sm font-medium text-gray-700 mb-1">Description</label><textarea value={desc} onChange={e => setDesc(e.target.value)} rows={2} className="input-field resize-none" /></div>
-      <div><label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label><input value={img} onChange={e => setImg(e.target.value)} placeholder="https://..." className="input-field" /></div>
-      <div><label className="block text-sm font-medium text-gray-700 mb-1">@site handle</label><input value={site} onChange={e => setSite(e.target.value)} placeholder="@yoursite" className="input-field" /></div>
-      <div className="border rounded-2xl overflow-hidden max-w-lg">
-        {img && <div className="bg-gray-100 aspect-video"><img src={img} alt="" className="w-full h-full object-cover" onError={e => (e.currentTarget.style.display = 'none')} /></div>}
-        <div className="p-3 border-t"><div className="text-xs text-gray-400">{site || 'example.com'}</div><div className="font-semibold text-gray-900 text-sm">{title || 'Title'}</div><div className="text-xs text-gray-500 line-clamp-2">{desc || 'Description'}</div></div>
-      </div>
-      <CodeOutput label="Twitter Card Meta Tags" code={`<meta name="twitter:card" content="summary_large_image" />\n<meta name="twitter:site" content="${site}" />\n<meta name="twitter:title" content="${title}" />\n<meta name="twitter:description" content="${desc}" />\n<meta name="twitter:image" content="${img}" />`} />
-    </div>
-  );
-}
-
-function FAQSchemaGenerator() {
-  const [faqs, setFaqs] = useState([{ q: '', a: '' }, { q: '', a: '' }]);
-  const schema = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faqs.filter(f => f.q && f.a).map(f => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })) };
-  return (
-    <div className="space-y-6">
-      {faqs.map((f, i) => (
-        <div key={i} className="p-4 border rounded-lg space-y-2">
-          <div className="flex justify-between"><span className="text-sm font-medium text-gray-700">FAQ #{i + 1}</span><button onClick={() => setFaqs(faqs.filter((_, j) => j !== i))} className="text-red-400 text-sm">Remove</button></div>
-          <input value={f.q} onChange={e => { const n = [...faqs]; n[i].q = e.target.value; setFaqs(n); }} placeholder="Question" className="input-field" />
-          <textarea value={f.a} onChange={e => { const n = [...faqs]; n[i].a = e.target.value; setFaqs(n); }} rows={2} placeholder="Answer" className="input-field resize-none" />
-        </div>
-      ))}
-      <button onClick={() => setFaqs([...faqs, { q: '', a: '' }])} className="text-sm text-purple-600 font-medium">+ Add FAQ</button>
-      <CodeOutput label="FAQ Schema (JSON-LD)" code={JSON.stringify(schema, null, 2)} />
-    </div>
-  );
-}
-
-function BreadcrumbSchemaGenerator() {
-  const [items, setItems] = useState([{ name: 'Home', url: 'https://example.com/' }, { name: 'Blog', url: 'https://example.com/blog/' }, { name: 'Post Title', url: '' }]);
-  const schema = { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: items.map((it, i) => ({ '@type': 'ListItem', position: i + 1, name: it.name, ...(it.url ? { item: it.url } : {}) })) };
-  return (
-    <div className="space-y-6">
-      {items.map((it, i) => (
-        <div key={i} className="flex gap-2 items-center">
-          <input value={it.name} onChange={e => { const n = [...items]; n[i].name = e.target.value; setItems(n); }} placeholder="Name" className="input-field w-40" />
-          <input value={it.url} onChange={e => { const n = [...items]; n[i].url = e.target.value; setItems(n); }} placeholder="URL (leave blank for current page)" className="input-field flex-1" />
-          <button onClick={() => setItems(items.filter((_, j) => j !== i))} className="text-red-400 text-sm">✗</button>
-        </div>
-      ))}
-      <button onClick={() => setItems([...items, { name: '', url: '' }])} className="text-sm text-purple-600 font-medium">+ Add level</button>
-      <CodeOutput label="Breadcrumb Schema (JSON-LD)" code={JSON.stringify(schema, null, 2)} />
-    </div>
-  );
-}
-
-function TextStatistics() {
-  const [text, setText] = useState('');
-  const words = text.trim().split(/\s+/).filter(Boolean);
-  const wc = words.length;
-  const sentences = text.split(/[.!?]+/).filter(s => s.trim()).length;
-  const uniqueWords = new Set(words.map(w => w.toLowerCase().replace(/[^a-z]/g, ''))).size;
-  const avgWordLen = wc > 0 ? (words.reduce((s, w) => s + w.length, 0) / wc).toFixed(1) : '0';
-  const avgSentLen = sentences > 0 ? (wc / sentences).toFixed(1) : '0';
-  const lexDiversity = wc > 0 ? ((uniqueWords / wc) * 100).toFixed(1) : '0';
-  return (
-    <div className="space-y-6">
-      <textarea value={text} onChange={e => setText(e.target.value)} rows={8} placeholder="Paste text to analyze..." className="input-field resize-none" />
-      {wc > 0 && <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        <StatBox label="Words" value={String(wc)} />
-        <StatBox label="Unique Words" value={String(uniqueWords)} />
-        <StatBox label="Sentences" value={String(sentences)} />
-        <StatBox label="Avg Word Length" value={`${avgWordLen} chars`} />
-        <StatBox label="Avg Sentence Length" value={`${avgSentLen} words`} />
-        <StatBox label="Lexical Diversity" value={`${lexDiversity}%`} />
-      </div>}
-    </div>
-  );
-}
-
-function PageTitleTester() {
-  const [titleA, setTitleA] = useState('');
-  const [titleB, setTitleB] = useState('');
-  const score = (t: string) => {
-    let s = 0;
-    if (t.length >= 30 && t.length <= 60) s += 30; else if (t.length > 0 && t.length < 30) s += 10; else if (t.length > 60) s += 5;
-    if (/\d/.test(t)) s += 10;
-    if (/[|—:\-]/.test(t)) s += 5;
-    if (t.charAt(0) === t.charAt(0).toUpperCase() && t.length > 0) s += 10;
-    const power = ['how','why','best','top','guide','free','new','proven','ultimate','easy'];
-    if (power.some(w => t.toLowerCase().includes(w))) s += 15;
-    if (t.length > 0) s += 10;
-    const words = t.trim().split(/\s+/).length;
-    if (words >= 5 && words <= 12) s += 10;
-    if (/[!?]$/.test(t)) s += 5;
-    if (t.length > 0 && !t.includes('  ')) s += 5;
-    return Math.min(100, s);
-  };
-  const sA = score(titleA);
-  const sB = score(titleB);
-  const colorFor = (s: number) => s >= 70 ? 'text-green-600' : s >= 40 ? 'text-yellow-600' : 'text-red-600';
-  return (
-    <div className="space-y-6">
-      <p className="text-sm text-gray-500">Compare two page titles to see which is more optimized for SEO and click-through rate.</p>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Title A</label>
-        <input value={titleA} onChange={e => setTitleA(e.target.value)} placeholder="e.g. 10 Best SEO Tools for Beginners in 2026" className="input-field" />
-        <span className={`text-xs ${titleA.length > 60 ? 'text-red-500' : 'text-gray-400'}`}>{titleA.length}/60</span>
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Title B</label>
-        <input value={titleB} onChange={e => setTitleB(e.target.value)} placeholder="e.g. SEO Tools - A Complete Guide" className="input-field" />
-        <span className={`text-xs ${titleB.length > 60 ? 'text-red-500' : 'text-gray-400'}`}>{titleB.length}/60</span>
-      </div>
-      {(titleA || titleB) && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {titleA && <div className={`p-4 rounded-lg border-2 ${sA >= sB && titleB ? 'border-green-300 bg-green-50' : 'border-gray-200 bg-gray-50'}`}>
-            <div className="text-sm font-medium text-gray-500 mb-1">Title A</div>
-            <div className="font-semibold text-gray-900 mb-2">{titleA}</div>
-            <div className={`text-2xl font-bold ${colorFor(sA)}`}>{sA}/100</div>
-            {sA >= sB && titleB && <div className="text-xs text-green-600 mt-1 font-medium">★ Winner</div>}
-          </div>}
-          {titleB && <div className={`p-4 rounded-lg border-2 ${sB > sA && titleA ? 'border-green-300 bg-green-50' : 'border-gray-200 bg-gray-50'}`}>
-            <div className="text-sm font-medium text-gray-500 mb-1">Title B</div>
-            <div className="font-semibold text-gray-900 mb-2">{titleB}</div>
-            <div className={`text-2xl font-bold ${colorFor(sB)}`}>{sB}/100</div>
-            {sB > sA && titleA && <div className="text-xs text-green-600 mt-1 font-medium">★ Winner</div>}
-          </div>}
-        </div>
-      )}
-      {titleA && titleB && (
-        <div className="p-4 bg-white border rounded-lg text-sm space-y-1">
-          <h4 className="font-semibold">Tips for better titles:</h4>
-          <ul className="list-disc pl-5 text-gray-600 space-y-1">
-            <li>Keep between 30–60 characters</li>
-            <li>Include numbers (e.g. "10 Best...")</li>
-            <li>Use power words: best, ultimate, proven, free, guide</li>
-            <li>Start with a capital letter</li>
-            <li>Use separators like | or — for branding</li>
-          </ul>
-        </div>
-      )}
-    </div>
-  );
-}
-
-function MarkdownPreviewer() {
-  const [md, setMd] = useState('# Hello World\n\nThis is **bold** and *italic* text.\n\n- List item 1\n- List item 2\n\n[Link](https://example.com)');
-  const toHtml = (s: string) => s
-    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-    .replace(/^# (.+)$/gm, '<h1>$1</h1>')
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.+?)\*/g, '<em>$1</em>')
-    .replace(/`(.+?)`/g, '<code class="bg-gray-100 px-1 rounded">$1</code>')
-    .replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" class="text-purple-600 underline">$1</a>')
-    .replace(/^- (.+)$/gm, '<li>$1</li>')
-    .replace(/(<li>.*<\/li>)/s, '<ul class="list-disc pl-5">$1</ul>')
-    .replace(/\n\n/g, '<br/><br/>');
-  return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">Markdown</label><textarea value={md} onChange={e => setMd(e.target.value)} rows={12} className="input-field resize-none font-mono text-sm" /></div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">Preview</label><div className="p-4 border rounded-lg prose prose-sm max-h-80 overflow-y-auto" dangerouslySetInnerHTML={{ __html: toHtml(md) }} /></div>
+      <div className="p-3 bg-gray-50 rounded text-sm text-gray-600">
+        <p className="font-semibold mb-1">CTR Benchmarks (Google Search):</p>
+        <ul className="space-y-1">
+          <li>Position 1: ~27% CTR</li>
+          <li>Position 2: ~15% CTR</li>
+          <li>Position 3: ~10% CTR</li>
+          <li>Position 10: ~2.5% CTR</li>
+        </ul>
       </div>
     </div>
   );
 }
 
-function HTMLEntityEncoder() {
-  const [input, setInput] = useState('');
-  const [mode, setMode] = useState<'encode' | 'decode'>('encode');
-  const encode = (s: string) => s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] || c));
-  const decode = (s: string) => s.replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
-  const output = mode === 'encode' ? encode(input) : decode(input);
+function ROICalculator() {
+  const [investment, setInvestment] = useState('1000');
+  const [revenue, setRevenue] = useState('3000');
+  const profit = +revenue - +investment;
+  const roi = +investment > 0 ? ((profit / +investment) * 100).toFixed(1) : '0.0';
+  const roas = +investment > 0 ? (+revenue / +investment).toFixed(2) : '0.00';
   return (
-    <div className="space-y-6">
-      <div className="flex gap-2">
-        <button onClick={() => setMode('encode')} className={`px-4 py-2 rounded-lg text-sm font-medium ${mode === 'encode' ? 'bg-purple-600 text-white' : 'bg-gray-100'}`}>Encode</button>
-        <button onClick={() => setMode('decode')} className={`px-4 py-2 rounded-lg text-sm font-medium ${mode === 'decode' ? 'bg-purple-600 text-white' : 'bg-gray-100'}`}>Decode</button>
+    <div className="space-y-4">
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Investment ($)</label><input type="number" value={investment} onChange={e => setInvestment(e.target.value)} className="input-field" /></div>
+      <div><label className="block text-sm font-medium text-gray-700 mb-1">Revenue ($)</label><input type="number" value={revenue} onChange={e => setRevenue(e.target.value)} className="input-field" /></div>
+      <div className="grid grid-cols-3 gap-4">
+        <StatBox label="Profit" value={`$${profit}`} color={profit > 0 ? 'teal' : 'purple'} />
+        <StatBox label="ROI" value={`${roi}%`} color={+roi > 0 ? 'teal' : 'purple'} />
+        <StatBox label="ROAS" value={`${roas}x`} color={+roas > 1 ? 'teal' : 'purple'} />
       </div>
-      <textarea value={input} onChange={e => setInput(e.target.value)} rows={4} placeholder="Enter text..." className="input-field resize-none font-mono text-sm" />
-      <div className="p-4 bg-gray-50 rounded-lg font-mono text-sm break-all">{output || '—'}</div>
-      <CopyBtn text={output} />
+      <div className="p-3 bg-gray-50 rounded text-sm text-gray-600">
+        <p><strong>ROI (Return on Investment):</strong> {+roi > 0 ? `You earned \$${roi} for every \$100 invested.` : 'Negative return — you lost money.'}</p>
+        <p className="mt-2"><strong>ROAS (Return on Ad Spend):</strong> {+roas >= 1 ? `You earned \$${roas} for every \$1 spent.` : 'ROAS below 1 means you are losing money.'}</p>
+      </div>
     </div>
   );
 }
 
-function InternalLinkAnalyzer() {
-  const [input, setInput] = useState('/home → /about\n/home → /blog\n/blog → /blog/post-1\n/blog → /blog/post-2\n/about → /contact');
-  const links = input.split('\n').filter(Boolean).map(l => { const [from, to] = l.split(/\s*[→>]+\s*/); return { from: from?.trim(), to: to?.trim() }; }).filter(l => l.from && l.to);
-  const pages = new Set(links.flatMap(l => [l.from, l.to]));
-  const inbound: Record<string, number> = {};
-  const outbound: Record<string, number> = {};
-  links.forEach(l => { inbound[l.to] = (inbound[l.to] || 0) + 1; outbound[l.from] = (outbound[l.from] || 0) + 1; });
-  const orphans = [...pages].filter(p => !inbound[p] && p !== '/home');
-  return (
-    <div className="space-y-6">
-      <div><label className="block text-sm font-medium text-gray-700 mb-1">Links (from → to, one per line)</label><textarea value={input} onChange={e => setInput(e.target.value)} rows={6} className="input-field resize-none font-mono text-sm" /></div>
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-4"><StatBox label="Pages" value={String(pages.size)} /><StatBox label="Links" value={String(links.length)} /><StatBox label="Orphan Pages" value={String(orphans.length)} /></div>
-      {orphans.length > 0 && <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg text-sm"><span className="font-medium text-yellow-700">⚠ Orphan pages (no inbound links):</span><ul className="mt-1 text-yellow-600">{orphans.map(p => <li key={p}><code>{p}</code></li>)}</ul></div>}
-      <div className="text-sm space-y-1">{[...pages].sort().map(p => <div key={p} className="flex justify-between px-2 py-1 bg-gray-50 rounded"><code>{p}</code><span className="text-gray-500">In: {inbound[p] || 0} | Out: {outbound[p] || 0}</span></div>)}</div>
-    </div>
-  );
-}
-
-function MetaRobotsGenerator() {
-  const [index, setIndex] = useState(true);
-  const [follow, setFollow] = useState(true);
-  const [noarchive, setNoarchive] = useState(false);
-  const [nosnippet, setNosnippet] = useState(false);
-  const [noimageindex, setNoimageindex] = useState(false);
-  const [maxSnippet, setMaxSnippet] = useState('');
-  const directives = [index ? 'index' : 'noindex', follow ? 'follow' : 'nofollow', ...(noarchive ? ['noarchive'] : []), ...(nosnippet ? ['nosnippet'] : []), ...(noimageindex ? ['noimageindex'] : []), ...(maxSnippet ? [`max-snippet:${maxSnippet}`] : [])].join(', ');
-  const tag = `<meta name="robots" content="${directives}" />`;
-  return (<div className="space-y-4">
-    <div className="grid grid-cols-2 gap-3">{[['Index', index, setIndex], ['Follow', follow, setFollow], ['No Archive', noarchive, setNoarchive], ['No Snippet', nosnippet, setNosnippet], ['No Image Index', noimageindex, setNoimageindex]].map(([label, val, setter]: any) => (<label key={label} className="flex items-center gap-2 text-sm"><input type="checkbox" checked={val} onChange={e => setter(e.target.checked)} />{label}</label>))}</div>
-    <div><label className="block text-sm font-medium text-gray-700 mb-1">Max Snippet Length</label><input value={maxSnippet} onChange={e => setMaxSnippet(e.target.value)} placeholder="-1 for unlimited" className="input-field" /></div>
-    <CodeOutput label="Meta Robots Tag" code={tag} />
-  </div>);
-}
-
-function HeadlineCapitalizer() {
-  const [input, setInput] = useState('');
-  const apStyle = (s: string) => s.split(' ').map((w, i) => { const lower = ['a','an','the','and','but','or','for','nor','at','by','in','of','on','to','up','as','is','it']; return (i === 0 || !lower.includes(w.toLowerCase())) ? w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() : w.toLowerCase(); }).join(' ');
-  const chicago = apStyle;
-  const allCaps = (s: string) => s.toUpperCase();
-  const sentenceCase = (s: string) => s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
-  return (<div className="space-y-4">
-    <div><label className="block text-sm font-medium text-gray-700 mb-1">Your Headline</label><input value={input} onChange={e => setInput(e.target.value)} placeholder="enter your headline here" className="input-field" /></div>
-    {input && <div className="space-y-2">{[['AP Style', apStyle(input)], ['Chicago Style', chicago(input)], ['ALL CAPS', allCaps(input)], ['Sentence case', sentenceCase(input)]].map(([label, result]) => (<div key={label} className="flex justify-between items-center p-3 bg-gray-50 rounded"><div><span className="text-xs text-gray-500">{label}</span><div className="font-medium">{result}</div></div><CopyBtn text={result} /></div>))}</div>}
-  </div>);
-}
-
-function EmailSubjectTester() {
-  const [subject, setSubject] = useState('');
-  const score = (() => { if (!subject) return 0; let s = 50; if (subject.length >= 30 && subject.length <= 60) s += 15; else if (subject.length > 60) s -= 10; if (/\d/.test(subject)) s += 10; if (/[!?]/.test(subject)) s += 5; if (subject === subject.toUpperCase()) s -= 20; if (/free|urgent|act now|limited/i.test(subject)) s -= 15; if (/how|why|what|tips|guide|best/i.test(subject)) s += 10; if (/\b(you|your)\b/i.test(subject)) s += 5; return Math.max(0, Math.min(100, s)); })();
-  return (<div className="space-y-4">
-    <div><label className="block text-sm font-medium text-gray-700 mb-1">Email Subject Line</label><input value={subject} onChange={e => setSubject(e.target.value)} placeholder="Your amazing subject line..." className="input-field" /></div>
-    {subject && <div className="space-y-3">
-      <div className="text-center"><div className={`text-4xl font-bold ${score >= 70 ? 'text-green-600' : score >= 40 ? 'text-yellow-600' : 'text-red-600'}`}>{score}/100</div><div className="text-sm text-gray-500">{score >= 70 ? 'Great subject line!' : score >= 40 ? 'Could be improved' : 'Needs work'}</div></div>
-      <div className="text-sm space-y-1">
-        <div className={subject.length >= 30 && subject.length <= 60 ? 'text-green-600' : 'text-yellow-600'}>{subject.length >= 30 && subject.length <= 60 ? '✓' : '!'} Length: {subject.length} chars (ideal: 30-60)</div>
-        <div className={/\d/.test(subject) ? 'text-green-600' : 'text-gray-500'}>{/\d/.test(subject) ? '✓ Contains numbers' : '○ Try adding numbers'}</div>
-        <div className={subject !== subject.toUpperCase() ? 'text-green-600' : 'text-red-600'}>{subject !== subject.toUpperCase() ? '✓ Not all caps' : '✗ Avoid ALL CAPS'}</div>
-        <div className={!/free|urgent|act now|limited/i.test(subject) ? 'text-green-600' : 'text-red-600'}>{!/free|urgent|act now|limited/i.test(subject) ? '✓ No spam trigger words' : '✗ Contains spam trigger words'}</div>
-      </div>
-    </div>}
-  </div>);
-}
-
-function SocialMediaPreview() {
-  const [title, setTitle] = useState('');
-  const [desc, setDesc] = useState('');
-  const [url, setUrl] = useState('https://example.com');
-  const [img, setImg] = useState('');
-  return (<div className="space-y-4">
-    <div><label className="block text-sm font-medium text-gray-700 mb-1">Page Title</label><input value={title} onChange={e => setTitle(e.target.value)} className="input-field" /></div>
-    <div><label className="block text-sm font-medium text-gray-700 mb-1">Description</label><textarea value={desc} onChange={e => setDesc(e.target.value)} rows={2} className="input-field resize-none" /></div>
-    <div><label className="block text-sm font-medium text-gray-700 mb-1">URL</label><input value={url} onChange={e => setUrl(e.target.value)} className="input-field" /></div>
-    <div><label className="block text-sm font-medium text-gray-700 mb-1">Image URL</label><input value={img} onChange={e => setImg(e.target.value)} className="input-field" /></div>
-    {title && <div className="space-y-4">
-      <h4 className="font-semibold text-gray-700">Facebook Preview</h4>
-      <div className="border rounded-lg overflow-hidden max-w-md">{img && <div className="h-40 bg-gray-200"><img src={img} alt="" className="w-full h-full object-cover" onError={e => (e.target as HTMLImageElement).style.display='none'} /></div>}<div className="p-3 bg-gray-50"><div className="text-xs text-gray-500 uppercase">{new URL(url).hostname}</div><div className="font-semibold text-sm mt-1">{title}</div><div className="text-xs text-gray-500 mt-1 line-clamp-2">{desc}</div></div></div>
-      <h4 className="font-semibold text-gray-700">Twitter Preview</h4>
-      <div className="border rounded-xl overflow-hidden max-w-md">{img && <div className="h-40 bg-gray-200"><img src={img} alt="" className="w-full h-full object-cover" onError={e => (e.target as HTMLImageElement).style.display='none'} /></div>}<div className="p-3"><div className="font-semibold text-sm">{title}</div><div className="text-xs text-gray-500 mt-1 line-clamp-2">{desc}</div><div className="text-xs text-gray-400 mt-1">{new URL(url).hostname}</div></div></div>
-    </div>}
-  </div>);
-}
-
-function HTTPHeaderChecker() {
-  const [input, setInput] = useState('HTTP/1.1 200 OK\nContent-Type: text/html; charset=utf-8\nCache-Control: max-age=3600\nX-Frame-Options: DENY\nStrict-Transport-Security: max-age=31536000\nContent-Security-Policy: default-src \'self\'');
-  const headers = input.split('\n').filter(Boolean).map(l => { const i = l.indexOf(':'); return i > 0 ? { name: l.slice(0, i).trim(), value: l.slice(i+1).trim() } : { name: l, value: '' }; });
-  const securityHeaders = ['strict-transport-security','content-security-policy','x-frame-options','x-content-type-options','referrer-policy','permissions-policy'];
-  const present = headers.map(h => h.name.toLowerCase());
-  return (<div className="space-y-4">
-    <div><label className="block text-sm font-medium text-gray-700 mb-1">Paste HTTP Headers</label><textarea value={input} onChange={e => setInput(e.target.value)} rows={8} className="input-field resize-none font-mono text-sm" /></div>
-    <div className="space-y-2">{headers.filter(h => h.value).map(h => (<div key={h.name} className="flex gap-2 text-sm p-2 bg-gray-50 rounded"><span className="font-mono font-medium text-purple-700">{h.name}:</span><span className="text-gray-600">{h.value}</span></div>))}</div>
-    <div className="p-4 bg-white border rounded-lg"><h4 className="font-semibold mb-2">Security Headers Check</h4><div className="space-y-1 text-sm">{securityHeaders.map(h => (<div key={h} className={present.includes(h) ? 'text-green-600' : 'text-red-600'}>{present.includes(h) ? '✓' : '✗'} {h}</div>))}</div></div>
-  </div>);
-}
-
-function JSONLDGenerator() {
-  const [type, setType] = useState('LocalBusiness');
-  const [fields, setFields] = useState<Record<string, string>>({ name: '', description: '', url: '' });
-  const update = (k: string, v: string) => setFields(f => ({ ...f, [k]: v }));
-  const fieldDefs: Record<string, string[]> = { LocalBusiness: ['name','description','url','telephone','address','priceRange'], Product: ['name','description','url','brand','price','currency','availability'], Event: ['name','description','url','startDate','endDate','location'] };
-  const output = JSON.stringify({ '@context': 'https://schema.org', '@type': type, ...Object.fromEntries(Object.entries(fields).filter(([,v]) => v)) }, null, 2);
-  return (<div className="space-y-4">
-    <div><label className="block text-sm font-medium text-gray-700 mb-1">Schema Type</label><select value={type} onChange={e => { setType(e.target.value); setFields({}); }} className="input-field">{Object.keys(fieldDefs).map(t => <option key={t}>{t}</option>)}</select></div>
-    {(fieldDefs[type] || []).map(f => (<div key={f}><label className="block text-sm font-medium text-gray-700 mb-1 capitalize">{f}</label><input value={fields[f] || ''} onChange={e => update(f, e.target.value)} className="input-field" /></div>))}
-    <CodeOutput label="JSON-LD Output" code={`<script type="application/ld+json">\n${output}\n</script>`} />
-  </div>);
-}
-
-function SearchIntentClassifier() {
-  const [keywords, setKeywords] = useState('');
-  const classify = (kw: string): string => { const k = kw.toLowerCase(); if (/buy|price|cheap|deal|discount|coupon|order|purchase|shop/.test(k)) return 'Transactional'; if (/best|top|review|comparison|vs|alternative/.test(k)) return 'Commercial'; if (/login|\.com|\.org|website|official|youtube|facebook/.test(k)) return 'Navigational'; return 'Informational'; };
-  const colors: Record<string, string> = { Transactional: 'bg-red-100 text-red-700', Commercial: 'bg-yellow-100 text-yellow-700', Navigational: 'bg-blue-100 text-blue-700', Informational: 'bg-green-100 text-green-700' };
-  const results = keywords.split('\n').filter(Boolean).map(k => ({ keyword: k.trim(), intent: classify(k) }));
-  return (<div className="space-y-4">
-    <div><label className="block text-sm font-medium text-gray-700 mb-1">Keywords (one per line)</label><textarea value={keywords} onChange={e => setKeywords(e.target.value)} rows={6} className="input-field resize-none" placeholder="how to improve SEO\nbuy SEO tools\nbest SEO software 2026\ngoogle.com login" /></div>
-    {results.length > 0 && <div className="space-y-2">{results.map((r, i) => (<div key={i} className="flex justify-between items-center p-2 bg-gray-50 rounded"><span className="text-sm">{r.keyword}</span><span className={`text-xs px-2 py-1 rounded-full font-medium ${colors[r.intent]}`}>{r.intent}</span></div>))}</div>}
-  </div>);
-}
-
-function LongTailKeywordGenerator() {
-  const [seed, setSeed] = useState('');
-  const modifiers = { questions: ['how to','what is','why does','when to','where to find','how much does','can you','is it worth','what are the best'], comparisons: ['vs','or','compared to','alternative to','like','similar to'], intent: ['buy','for sale','near me','online','free','cheap','best','top','review'], year: ['2026','2025','for beginners','for small business','tips','guide','examples','template'] };
-  const results = seed ? Object.entries(modifiers).flatMap(([,mods]) => mods.map(m => `${m} ${seed}`).concat(mods.map(m => `${seed} ${m}`))) : [];
-  return (<div className="space-y-4">
-    <div><label className="block text-sm font-medium text-gray-700 mb-1">Seed Keyword</label><input value={seed} onChange={e => setSeed(e.target.value)} placeholder="e.g., SEO tools" className="input-field" /></div>
-    {results.length > 0 && <div><div className="flex justify-between mb-2"><span className="text-sm font-medium text-gray-700">{results.length} variations</span><CopyBtn text={results.join('\n')} /></div><div className="max-h-64 overflow-y-auto space-y-1">{results.map((r, i) => <div key={i} className="text-sm p-1.5 bg-gray-50 rounded">{r}</div>)}</div></div>}
-  </div>);
-}
-
-function SiteAuditChecklist() {
-  const [checked, setChecked] = useState<Set<string>>(new Set());
-  const toggle = (id: string) => setChecked(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
-  const sections = [
-    { title: 'Technical SEO', items: [['t1','HTTPS enabled'],['t2','XML sitemap submitted'],['t3','Robots.txt configured'],['t4','No broken links (4xx)'],['t5','Page speed < 3s'],['t6','Mobile-friendly'],['t7','Structured data implemented'],['t8','Canonical tags set']] },
-    { title: 'On-Page SEO', items: [['o1','Unique title tags'],['o2','Meta descriptions on all pages'],['o3','H1 tags on every page'],['o4','Image alt attributes'],['o5','Internal linking structure'],['o6','Keyword in URL slug'],['o7','Content length > 300 words']] },
-    { title: 'Off-Page SEO', items: [['f1','Google Business Profile claimed'],['f2','Social media profiles linked'],['f3','Backlink profile reviewed'],['f4','Brand mentions monitored'],['f5','Local citations consistent']] },
-  ];
-  const total = sections.reduce((s, sec) => s + sec.items.length, 0);
-  const pct = Math.round((checked.size / total) * 100);
-  return (<div className="space-y-6">
-    <div className="text-center"><div className="text-3xl font-bold text-purple-600">{pct}%</div><div className="text-sm text-gray-500">{checked.size}/{total} completed</div><div className="w-full bg-gray-200 rounded-full h-2 mt-2"><div className="bg-purple-600 h-2 rounded-full transition-all" style={{width:`${pct}%`}} /></div></div>
-    {sections.map(sec => (<div key={sec.title}><h4 className="font-semibold text-gray-900 mb-2">{sec.title}</h4><div className="space-y-1">{sec.items.map(([id, label]) => (<label key={id} className="flex items-center gap-2 text-sm p-2 bg-gray-50 rounded cursor-pointer"><input type="checkbox" checked={checked.has(id)} onChange={() => toggle(id)} /><span className={checked.has(id) ? 'line-through text-gray-400' : ''}>{label}</span></label>))}</div></div>))}
-  </div>);
-}
-
-function AnchorTextAnalyzer() {
-  const [input, setInput] = useState('');
-  const anchors = input.split('\n').filter(Boolean).map(a => a.trim().toLowerCase());
-  const freq: Record<string, number> = {};
-  anchors.forEach(a => { freq[a] = (freq[a] || 0) + 1; });
-  const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]);
-  const total = anchors.length;
-  const types: Record<string, number> = { 'Exact Match': 0, 'Branded': 0, 'Generic': 0, 'URL': 0 };
-  const generic = ['click here','read more','learn more','here','this','link','visit','go'];
-  anchors.forEach(a => { if (/^https?:\/\//.test(a)) types['URL']++; else if (generic.includes(a)) types['Generic']++; else types['Exact Match']++; });
-  return (<div className="space-y-4">
-    <div><label className="block text-sm font-medium text-gray-700 mb-1">Anchor Texts (one per line)</label><textarea value={input} onChange={e => setInput(e.target.value)} rows={6} className="input-field resize-none" placeholder="your brand name\nbest seo tools\nclick here\nhttps://example.com" /></div>
-    {total > 0 && <><div className="grid grid-cols-2 gap-3">{Object.entries(types).map(([k, v]) => <StatBox key={k} label={k} value={`${v} (${Math.round(v/total*100)}%)`} />)}</div>
-    <div className="space-y-1">{sorted.map(([text, count]) => <div key={text} className="flex justify-between text-sm p-2 bg-gray-50 rounded"><span>{text}</span><span className="text-gray-500">{count}× ({(count/total*100).toFixed(1)}%)</span></div>)}</div></>}
-  </div>);
-}
-
-function KeywordGrouper() {
-  const [input, setInput] = useState('');
-  const keywords = input.split('\n').filter(Boolean).map(k => k.trim().toLowerCase());
-  const groups: Record<string, string[]> = {};
-  keywords.forEach(kw => { const words = kw.split(/\s+/); const key = words.length > 1 ? words.slice(0, Math.min(2, words.length - 1)).join(' ') : kw; if (!groups[key]) groups[key] = []; groups[key].push(kw); });
-  return (<div className="space-y-4">
-    <div><label className="block text-sm font-medium text-gray-700 mb-1">Keywords (one per line)</label><textarea value={input} onChange={e => setInput(e.target.value)} rows={6} className="input-field resize-none" placeholder="seo tools free\nseo tools for beginners\nseo audit checklist\nseo audit tool\nkeyword research tips\nkeyword research tools" /></div>
-    {Object.keys(groups).length > 0 && <div className="space-y-3">{Object.entries(groups).sort((a,b) => b[1].length - a[1].length).map(([group, kws]) => (<div key={group} className="p-3 bg-gray-50 rounded-lg"><div className="font-medium text-purple-700 text-sm mb-1">{group} ({kws.length})</div><div className="text-sm text-gray-600">{kws.join(', ')}</div></div>))}</div>}
-  </div>);
-}
+// ============================================================================
+// TOOL COMPONENT REGISTRY
+// ============================================================================
 
 const toolComponents: Record<string, React.FC> = {
-  'meta-tag-checker': MetaTagChecker,
-  'keyword-density': KeywordDensity,
+  // On-Page SEO (1-15)
+  'meta-tag-generator': MetaTagGenerator,
   'serp-preview': SERPPreview,
-  'robots-generator': RobotsGenerator,
+  'title-length-checker': TitleLengthChecker,
+  'meta-description-length-checker': MetaDescriptionLengthChecker,
+  'heading-structure-analyzer': HeadingStructureAnalyzer,
+  'keyword-density': KeywordDensityChecker,
   'word-counter': WordCounter,
-  'character-counter': CharCounter,
-  'url-encoder': URLEncoder,
-  'heading-analyzer': HeadingAnalyzer,
-  'og-preview': OGPreview,
-  'schema-generator': SchemaGenerator,
-  'slug-generator': SlugGenerator,
-  'lorem-generator': LoremGenerator,
-  'case-converter': CaseConverter,
-  'htaccess-generator': HtaccessGenerator,
-  'xml-sitemap-generator': XMLSitemapGenerator,
-  'hreflang-generator': HreflangGenerator,
-  'canonical-checker': CanonicalChecker,
   'readability-checker': ReadabilityChecker,
-  'base64-tool': Base64Tool,
-  'utm-builder': UTMBuilder,
-  'viewport-tester': ViewportTester,
-  'text-diff': TextDiff,
-  'json-formatter': JSONFormatter,
-  'color-contrast': ColorContrast,
-  'meta-length': MetaLengthChecker,
-  'keyword-extractor': KeywordExtractor,
-  'alt-text-generator': AltTextGenerator,
-  'redirect-mapper': RedirectMapper,
-  'html-minifier': HTMLMinifier,
-  'css-minifier': CSSMinifier,
-  'js-minifier': JSMinifier,
-  'twitter-card': TwitterCardPreview,
-  'faq-schema': FAQSchemaGenerator,
-  'breadcrumb-schema': BreadcrumbSchemaGenerator,
-  'text-statistics': TextStatistics,
-  'password-generator': PageTitleTester,
-  'markdown-preview': MarkdownPreviewer,
-  'html-entities': HTMLEntityEncoder,
   'internal-link-analyzer': InternalLinkAnalyzer,
-  'meta-robots-generator': MetaRobotsGenerator,
-  'headline-capitalizer': HeadlineCapitalizer,
-  'email-subject-tester': EmailSubjectTester,
-  'social-media-preview': SocialMediaPreview,
-  'http-header-checker': HTTPHeaderChecker,
-  'json-ld-generator': JSONLDGenerator,
-  'search-intent-classifier': SearchIntentClassifier,
-  'long-tail-keyword-generator': LongTailKeywordGenerator,
-  'site-audit-checklist': SiteAuditChecklist,
+  'alt-text-generator': AltTextGenerator,
   'anchor-text-analyzer': AnchorTextAnalyzer,
-  'keyword-grouper': KeywordGrouper,
+  'content-gap-finder': ContentGapFinder,
+  'lsi-keyword-generator': LSIKeywordGenerator,
+  'featured-snippet-optimizer': FeaturedSnippetOptimizer,
+  'content-length-calculator': ContentLengthCalculator,
+  // Technical SEO (16-30)
+  'robots-generator': RobotsGenerator,
+  'xml-sitemap-generator': XMLSitemapGenerator,
+  'schema-generator': SchemaGenerator,
+  'canonical-builder': CanonicalBuilder,
+  'hreflang-generator': HreflangGenerator,
+  'og-generator': OGGenerator,
+  'twitter-card': TwitterCardGenerator,
+  'structured-data-validator': StructuredDataValidator,
+  'htaccess-generator': HtaccessGenerator,
+  'slug-generator': SlugGenerator,
+  'breadcrumb-schema': BreadcrumbSchema,
+  'faq-schema': FAQSchema,
+  'page-speed-checklist': PageSpeedChecklist,
+  'core-web-vitals-guide': CoreWebVitalsGuide,
+  'mobile-friendly-checker': MobileFriendlyChecker,
+  // Content & Keyword (31-40)
+  'blog-outline-generator': BlogOutlineGenerator,
+  'seo-title-generator': SEOTitleGenerator,
+  'meta-description-writer': MetaDescriptionWriter,
+  'content-calendar': ContentCalendar,
+  'keyword-clustering': KeywordClustering,
+  'search-intent-classifier': SearchIntentClassifier,
+  'competitor-keyword-gap': CompetitorKeywordGap,
+  'long-tail-keyword-generator': LongTailKeywordGenerator,
+  'people-also-ask': PeopleAlsoAskGenerator,
+  'content-refresh-checker': ContentRefreshChecker,
+  // Link Building & Analytics (41-50)
+  'backlink-opportunity-finder': BacklinkOpportunityFinder,
+  'guest-post-pitch': GuestPostPitchGenerator,
+  'broken-link-guide': BrokenLinkGuide,
+  'link-building-roi': LinkBuildingROICalculator,
+  'domain-authority-estimator': DomainAuthorityEstimator,
+  'utm-builder': UTMBuilder,
+  'ga4-event-builder': GA4EventBuilder,
+  'ab-test-calculator': ABTestCalculator,
+  'ctr-calculator': CTRCalculator,
+  'roi-calculator': ROICalculator,
 };
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
 
 export default function ToolDetail() {
   const { slug } = useParams();
@@ -1185,8 +1200,8 @@ export default function ToolDetail() {
   if (!tool || !ToolComponent) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-20 text-center">
-        <h1 className="text-2xl font-bold">Tool Not Found</h1>
-        <Link to="/tools" className="text-purple-600 hover:underline mt-4 inline-block">← Back to tools</Link>
+        <h1 className="text-2xl font-bold text-gray-900">Tool Not Found</h1>
+        <Link to="/tools" className="text-purple-600 hover:underline mt-4 inline-block">← Back to all tools</Link>
       </div>
     );
   }
@@ -1203,19 +1218,9 @@ export default function ToolDetail() {
         applicationCategory: 'SEO Tool',
         operatingSystem: 'Any',
         offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-        browserRequirements: 'Requires JavaScript'
+        browserRequirements: 'Requires JavaScript. No registration needed.'
       })}} />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
-        '@context': 'https://schema.org',
-        '@type': 'BreadcrumbList',
-        itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://seorely.com/' },
-          { '@type': 'ListItem', position: 2, name: 'Tools', item: 'https://seorely.com/tools' },
-          { '@type': 'ListItem', position: 3, name: tool.name, item: `https://seorely.com/tools/${tool.slug}` },
-        ]
-      })}} />
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-12">
-        {/* Breadcrumb */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 py-12">
         <nav className="flex items-center gap-1 text-sm text-gray-400 mb-6">
           <Link to="/" className="hover:text-purple-600">Home</Link>
           <ChevronRight className="w-3 h-3" />
@@ -1223,10 +1228,19 @@ export default function ToolDetail() {
           <ChevronRight className="w-3 h-3" />
           <span className="text-gray-700">{tool.name}</span>
         </nav>
-        <h1 className="text-3xl font-black text-gray-900 mb-3">{tool.name}</h1>
-        <p className="text-lg text-gray-500 mb-8">{tool.description}</p>
-        <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8">
+        
+        <div className="mb-8">
+          <h1 className="text-3xl md:text-4xl font-black text-gray-900 mb-3">{tool.name}</h1>
+          <p className="text-lg text-gray-600">{tool.description}</p>
+        </div>
+        
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 md:p-8 shadow-sm">
           <ToolComponent />
+        </div>
+        
+        <div className="mt-8 p-4 bg-gradient-to-r from-purple-50 to-teal-50 rounded-lg text-center">
+          <p className="text-sm text-gray-600">✨ All tools run 100% in your browser. No data is sent to any server.</p>
+          <Link to="/tools" className="text-purple-600 hover:text-purple-700 font-medium text-sm mt-2 inline-block">← Browse all 50 free SEO tools</Link>
         </div>
       </div>
     </>
